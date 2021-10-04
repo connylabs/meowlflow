@@ -38,6 +38,7 @@ The `Response` model should also implement a `transform` classmethod to convert
 the model output to your desired shape.
 
 For the above example, you could use the following custom schema:
+[replace]: # (examples/document_splitter_schema.py)
 ```python
 from typing import List, Any
 import json
@@ -55,9 +56,33 @@ class Request(BaseRequest):
     def transform(self):
         return json.dumps({"columns": [sample.text for sample in self.samples]})
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "samples": [
+                    {
+                        "text": "page 1 of 2\nfoo",
+                    },
+                    {
+                        "text": "page 2 of 2\nbar",
+                    },
+                    {
+                        "text": "page 1 of 1\nbaz",
+                    },
+                ]
+            }
+        }
+
 class Response(BaseResponse):
-    predictions: Any
+    predictions: List[int]
     @classmethod
     def transform(cls, data):
         return {"predictions": data}
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "predictions": [1, 0, 1]
+            }
+        }
 ```
