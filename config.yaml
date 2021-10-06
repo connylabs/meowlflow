@@ -1,0 +1,9 @@
+meowlflow:
+  token: changeme
+  debug: false
+  download_dir: /tmp/meowlflow
+  env: development
+  url: https://meowlflow.yourdomain.com
+sentry:
+  url: null
+  environment: development
