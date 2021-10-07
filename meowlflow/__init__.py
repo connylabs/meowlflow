@@ -4,14 +4,14 @@ import subprocess
 from pathlib import Path
 
 
-def parse_version():
+def _parse_version():
     version_file = list(Path(__file__).resolve().parents[1].glob("VERSION"))
     if version_file:
         return version_file[0].read_text().strip()
-    return '0.0.69'
+    return '0.0.1'
 
 
-__version__ = parse_version()
+__version__ = _parse_version()
 
 
 def _get_git_sha():
