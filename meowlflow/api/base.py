@@ -8,6 +8,7 @@ class BaseRequest(BaseModel, abc.ABC):
     def transform(self):
         pass
 
+
 class BaseResponse(BaseModel, abc.ABC):
     @classmethod
     @abc.abstractmethod
