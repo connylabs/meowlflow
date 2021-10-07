@@ -3,7 +3,6 @@ Acquire runtime configuration from environment variables (etc).
 """
 
 import os
-from pathlib import Path
 import yaml
 
 

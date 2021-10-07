@@ -26,15 +26,18 @@ if "url" in GCONFIG.sentry:
         environment=GCONFIG.sentry["environment"],
     )
 
+
 def _create_tmp_dir():
     pathlib.Path(GCONFIG.meowlflow["download_dir"]).mkdir(parents=True, exist_ok=True)
     pathlib.Path(GCONFIG.meowlflow["prometheus_dir"]).mkdir(parents=True, exist_ok=True)
+
 
 def _load_module(module_path, module_name):
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
 
 def _to_endpoint_path(endpoint):
     endpoint = Path(endpoint).as_posix().strip("/")
@@ -45,6 +48,7 @@ def _to_endpoint_path(endpoint):
 
 app = FastAPI()
 
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -52,6 +56,7 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
 
 async def add_check_token(request: Request, call_next):
     if GCONFIG.meowlflow["token"] and (
@@ -68,19 +73,28 @@ app.add_middleware(ProxyHeadersMiddleware)
 app.add_middleware(SentryAsgiMiddleware)
 app.add_route("/metrics", handle_metrics)
 app.middleware("http")(catch_exceptions_middleware)
-### Uncomment to check a token before serving the API
+# Uncomment to check a token before serving the API
 # app.middleware("http")(add_check_token)
 
 
-
 @click.command()
-@click.option('--endpoint', default="/infer", type=click.Path(), show_default=True)
-@click.option('--upstream', default="http://127.0.0.1:5000/invocations", type=str, show_default=True)
-@click.option('--schema-path', default="/var/lib/meowlflow/schema.py", type=click.Path(), show_default=True)
-@click.option('--host', default="0.0.0.0", type=str, show_default=True)
-@click.option('--port', default=8000, type=int, show_default=True)
+@click.option("--endpoint", default="/infer", type=click.Path(), show_default=True)
+@click.option(
+    "--upstream",
+    default="http://127.0.0.1:5000/invocations",
+    type=str,
+    show_default=True,
+)
+@click.option(
+    "--schema-path",
+    default="/var/lib/meowlflow/schema.py",
+    type=click.Path(),
+    show_default=True,
+)
+@click.option("--host", default="0.0.0.0", type=str, show_default=True)
+@click.option("--port", default=8000, type=int, show_default=True)
 def main(endpoint, upstream, schema_path, host, port):
-    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
 
@@ -100,7 +114,7 @@ def main(endpoint, upstream, schema_path, host, port):
     logger.info(f"Using port {port}")
 
     @api.router.post(endpoint, response_model=schema.Response)
-    async def infer(request : schema.Request):
+    async def infer(request: schema.Request):
         headers = {"Content-Type": "application/json"}
         data = request.transform()
 
