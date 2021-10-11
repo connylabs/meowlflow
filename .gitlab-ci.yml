@@ -1,15 +1,13 @@
 ---
 stages:
-  - build
+  - build-containers
   - test
-  - tag
-  - deploy
+  - release
 
 include:
   - project: 'connylegal/mietright_deployments'
-    file: '/.gitlab-ci/build-container.yaml'
     ref: main
-
+    file: '/.gitlab-ci/build-container.yaml'
   - project: 'connylegal/mietright_deployments'
     ref: main
     file: '/.gitlab-ci/deploy.yaml'
@@ -17,77 +15,35 @@ include:
 variables:
   FAILFASTCI_NAMESPACE: connylegal
   OCI_REPO: img.conny.dev
-  CONTAINER: conny/meowlflow
-  IMAGE_NAME: $OCI_REPO/$CONTAINER
-  APPNAME: meowlflow
-  APP: meowlflow
-  DEFAULT_TAG: v.$CI_COMMIT_REF_SLUG
-  MEOWLFLOW_CONF_FILE: tests/data/test_config.yaml
+  IMAGE_NAME: $OCI_REPO/conny/meowlflow
 
-# BUILD IMAGE
-build image:
+build-container:
   extends: .build-container
-  variables:
-    TAG: v.$CI_COMMIT_REF_SLUG
+  stage: build-containers
 
-# RUN TEST
-unit test:
-  image:
-    name: image.conny.dev/conny/meowlflow:ci.v1
-  stage: build
-  script:
-    - pytest --cov=$APP --cov-report=html --cov-report=term-missing  --verbose tests --junitxml=report.xml
-    - coverage xml
-  artifacts:
-    when: always
-    reports:
-      junit: report.xml
-      cobertura: coverage.xml
-  tags:
-    - kubernetes
-
-
-code lint:
-  image:
-    name: image.conny.dev/conny/meowlflow:ci.v1
-  stage: build
-  script:
-    - make check
-  tags:
-    - kubernetes
-
-
-test image:
-  image:
-    name: $IMAGE_NAME:v.$CI_COMMIT_REF_SLUG
+tag image:
   needs:
-    - "build image"
+    - build-container
+    - lint
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG'
+  tags:
+    - kubernetes
+  stage: release
+  image:
+    name: $OCI_REPO/conny-tools/crane-conny:latest
+  script:
+    - crane cp $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:$CI_COMMIT_REF_SLUG
+
+lint:
+  tags:
+    - kubernetes
   stage: test
-  variables:
-    GIT_STRATEGY: none
+  image:
+    name: python:3.9
+    entrypoint: ["/bin/sh", "-c"]
   script:
-    - cd /app
-    - make test
-  tags:
-    - kubernetes
-
-
-# TAGS IMAGES
-image tag:
-  extends: .tag-main
-  needs:
-    - "test image"
-  variables:
-    SOURCE_TAG: v.$CI_COMMIT_REF_SLUG
-
-# Deploy
-deploy-staging:
-  needs:
-    - image tag
-  extends: .deploy-staging
-
-deploy-production:
-  needs:
-    - image tag
-  extends: .deploy-production
-  stage: deploy
+    - pip install -r requirements_dev.txt
+    - make lint

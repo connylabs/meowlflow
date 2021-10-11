@@ -4,9 +4,6 @@
 import logging
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
-
-from meowlflow.config import GCONFIG
 
 
 router = APIRouter(prefix="/api/v1", tags=["infer"])

@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List
 import json
 
 from pydantic import BaseModel
@@ -7,10 +7,12 @@ from meowlflow.api.base import BaseRequest, BaseResponse
 
 
 class Page(BaseModel):
-    text : str
+    text: str
+
 
 class Request(BaseRequest):
     samples: List[Page]
+
     def transform(self):
         return json.dumps({"columns": [sample.text for sample in self.samples]})
 
@@ -31,8 +33,10 @@ class Request(BaseRequest):
             }
         }
 
+
 class Response(BaseResponse):
     predictions: List[int]
+
     @classmethod
     def transform(cls, data):
         return {"predictions": data}
