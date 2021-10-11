@@ -92,7 +92,7 @@ app.middleware("http")(catch_exceptions_middleware)
 )
 @click.option("--host", default="0.0.0.0", type=str, show_default=True)
 @click.option("--port", default=8000, type=int, show_default=True)
-def main(endpoint, upstream, schema_path, host, port):
+def sidecar(endpoint, upstream, schema_path, host, port):
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
