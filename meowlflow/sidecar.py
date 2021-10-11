@@ -73,13 +73,12 @@ app.middleware("http")(catch_exceptions_middleware)
 
 
 
-@click.command()
 @click.option('--endpoint', default="/infer", type=click.Path(), show_default=True)
-@click.option('--upstream', default="http://127.0.0.1:5000/invocations", type=str, show_default=True)
+@click.option('--upstream', default="http://127.0.0.1:8080/invocations", type=str, show_default=True)
 @click.option('--schema-path', default="/var/lib/meowlflow/schema.py", type=click.Path(), show_default=True)
 @click.option('--host', default="0.0.0.0", type=str, show_default=True)
 @click.option('--port', default=8000, type=int, show_default=True)
-def main(endpoint, upstream, schema_path, host, port):
+def sidecar(endpoint, upstream, schema_path, host, port):
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
@@ -112,7 +111,3 @@ def main(endpoint, upstream, schema_path, host, port):
     app.include_router(info.router)
     app.include_router(api.router)
     uvicorn.run(app, host=host, port=port, log_level="debug")
-
-
-if __name__ == "__main__":
-    main()

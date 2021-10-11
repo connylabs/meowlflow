@@ -11,3 +11,4 @@ starlette_exporter
 paramiko
 sentry-sdk
 click
+mlflow==1.18.0
