@@ -5,7 +5,6 @@ from pathlib import Path
 
 import click
 from mlflow.pyfunc import backend as mlflow_backend
-from mlflow.models import cli as mlflow_cli
 from mlflow.models import docker_utils as mlflow_docker_utils
 
 
@@ -71,26 +70,45 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
 """
 
 
-@click.argument('model-uri', type=str)
-@click.option('--tag', default="mlflow-pyfunc-servable", type=str, show_default=True, help="Docker image tag")
-@click.option('--custom-steps', type=str, help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""')
+@click.argument("model-uri", type=str)
+@click.option(
+    "--tag",
+    default="mlflow-pyfunc-servable",
+    type=str,
+    show_default=True,
+    help="Docker image tag",
+)
+@click.option(
+    "--custom-steps",
+    type=str,
+    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',
+)
 def generate(model_uri, tag, custom_steps):
     with mlflow_docker_utils.TempDir() as tmp:
         cwd = tmp.path()
-        _dockerfile = dockerfile(
-            model_uri,
-            cwd,
-            tag,
-            custom_steps=custom_steps
-        )
+        _dockerfile = dockerfile(model_uri, cwd, tag, custom_steps=custom_steps)
 
     print(_dockerfile)
 
 
-@click.argument('model-uri', type=str)
-@click.option('--tag', default="mlflow-pyfunc-servable", type=str, show_default=True, help="Docker image tag")
-@click.option('--ssh-key', type=click.File("r"), help="path to a SSH private key, eg: ~/home/.ssh/id_rsa")
-@click.option('--custom-steps', type=str, help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""')
+@click.argument("model-uri", type=str)
+@click.option(
+    "--tag",
+    default="mlflow-pyfunc-servable",
+    type=str,
+    show_default=True,
+    help="Docker image tag",
+)
+@click.option(
+    "--ssh-key",
+    type=click.File("r"),
+    help="path to a SSH private key, eg: ~/home/.ssh/id_rsa",
+)
+@click.option(
+    "--custom-steps",
+    type=str,
+    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',
+)
 def build(model_uri, tag, ssh_key, custom_steps):
     """MODEL_URI is a URI pointing to a model located in S3,
     eg: s3://mlflow/prod/artifacts/6/3a0...5d1/artifacts/model
@@ -140,12 +158,7 @@ def build(model_uri, tag, ssh_key, custom_steps):
 
     with mlflow_docker_utils.TempDir() as tmp:
         cwd = tmp.path()
-        _dockerfile = dockerfile(
-            model_uri,
-            cwd,
-            tag,
-            custom_steps=custom_steps
-        )
+        _dockerfile = dockerfile(model_uri, cwd, tag, custom_steps=custom_steps)
 
         with open(os.path.join(cwd, "Dockerfile"), "w") as f:
             f.write(_dockerfile)
@@ -184,10 +197,13 @@ def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
     -------
     dockerfile : str
     """
+
     def copy_model_into_container(dockerfile_context_dir):
         model_cwd = os.path.join(dockerfile_context_dir, "model_dir")
         os.mkdir(model_cwd)
-        model_path = mlflow_backend._download_artifact_from_uri(model_uri, output_path=model_cwd)
+        model_path = mlflow_backend._download_artifact_from_uri(
+            model_uri, output_path=model_cwd
+        )
         return """
             COPY {model_dir} /opt/ml/model
             RUN python -c \
@@ -205,6 +221,7 @@ def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
     custom_steps = custom_steps if custom_steps else ""
 
     return _DOCKERFILE_TEMPLATE.format(
-            install_mlflow=install_mlflow,
-            custom_steps=custom_steps,
-            model_install_steps=copy_model_into_container(cwd))
+        install_mlflow=install_mlflow,
+        custom_steps=custom_steps,
+        model_install_steps=copy_model_into_container(cwd),
+    )

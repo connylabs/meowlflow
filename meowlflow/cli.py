@@ -1,6 +1,4 @@
-import logging
 import click
-import os
 
 from meowlflow.sidecar import sidecar
 from meowlflow.build import build, generate
@@ -12,6 +10,7 @@ def cli():
     main meowlflow
     """
     pass
+
 
 cli.command("sidecar")(sidecar)
 cli.command("build")(build)
