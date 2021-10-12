@@ -29,4 +29,4 @@ COPY --from=build /lib /lib
 COPY --from=build /app /app
 
 WORKDIR /app
-CMD ["./run-server.sh"]
+ENTRYPOINT ["meowlflow"]
