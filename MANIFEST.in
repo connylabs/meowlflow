@@ -1,7 +1,6 @@
 include AUTHORS.rst
 include LICENSE
 include README.md
-include run-server.sh
 recursive-include conf *
 recursive-include tests *
 recursive-exclude * __pycache__
