@@ -47,3 +47,4 @@ lint:
   script:
     - pip install -r requirements_dev.txt
     - make lint
+    - make black-test

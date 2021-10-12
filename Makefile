@@ -43,6 +43,7 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -fr {} +
 	find . -name '.mypy_cache' -exec rm -fr {} +
 	find . -name '.pyre' -exec rm -fr {} +
+
 clean-test:
 	rm -fr .tox/
 	rm -f .coverage
