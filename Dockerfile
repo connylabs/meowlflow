@@ -1,6 +1,6 @@
 # Change base image with python:3-aline works too
 # Base image is from Dockerfile-base
-FROM python:3-slim as build
+FROM python:3.9-slim as build
 ENV workdir=/app
 RUN mkdir -p $workdir
 WORKDIR $workdir
@@ -18,7 +18,7 @@ COPY . $workdir
 RUN pip install .
 
 # Squash layers
-FROM python:3-slim
+FROM python:3.9-slim
 
 # COPY --from=build / /   # doesn't work on kaniko
 # Waiting for: https://github.com/GoogleContainerTools/kaniko/pull/1724
