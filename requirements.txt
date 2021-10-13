@@ -12,3 +12,4 @@ paramiko
 sentry-sdk
 click
 mlflow==1.18.0
+boto3
