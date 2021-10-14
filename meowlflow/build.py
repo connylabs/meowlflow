@@ -72,6 +72,13 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
 
 @click.argument("model-uri", type=str)
 @click.option(
+    "--workdir",
+    default=os.getcwd(),
+    type=click.Path(exists=True),
+    show_default=True,
+    help="path to use as a working directory, eg: /tmp/meowlflow",
+)
+@click.option(
     "--tag",
     default="mlflow-pyfunc-servable",
     type=str,
@@ -83,11 +90,8 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
     type=str,
     help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',
 )
-def generate(model_uri, tag, custom_steps):
-    with mlflow_docker_utils.TempDir() as tmp:
-        cwd = tmp.path()
-        _dockerfile = dockerfile(model_uri, cwd, tag, custom_steps=custom_steps)
-
+def generate(model_uri, workdir, tag, custom_steps):
+    _dockerfile = dockerfile(model_uri, workdir, tag, custom_steps=custom_steps)
     print(_dockerfile)
 
 
@@ -102,7 +106,7 @@ def generate(model_uri, tag, custom_steps):
 @click.option(
     "--ssh-key",
     type=click.File("r"),
-    help="path to a SSH private key, eg: ~/home/.ssh/id_rsa",
+    help="path to a SSH private key, eg: ~/.ssh/id_rsa",
 )
 @click.option(
     "--custom-steps",
@@ -142,7 +146,7 @@ def build(model_uri, tag, ssh_key, custom_steps):
 
         path to a SSH private key
         eg:
-            "~/home/.ssh/id_rsa"
+            "~/.ssh/id_rsa"
 
     custom_steps : str, default: None
         (multiline) string with custom Dockerfile directives (steps)
@@ -205,14 +209,14 @@ def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
             model_uri, output_path=model_cwd
         )
         return """
-            COPY {model_dir} /opt/ml/model
-            RUN python -c \
-            'from mlflow.models.container import _install_pyfunc_deps;\
-            _install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
-            ENV {disable_env}="true"
+COPY {model_dir} /opt/ml/model
+RUN python -c \
+'from mlflow.models.container import _install_pyfunc_deps;\
+_install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
+ENV {disable_env}="true"
             """.format(
             disable_env=mlflow_backend.DISABLE_ENV_CREATION,
-            model_dir=str(posixpath.join("model_dir", os.path.basename(model_path))),
+            model_dir=str(posixpath.join(model_cwd, os.path.basename(model_path))),
         )
 
     mlflow_home = os.path.abspath(mlflow_home) if mlflow_home else None
