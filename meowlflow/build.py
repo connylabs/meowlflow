@@ -106,7 +106,7 @@ def generate(model_uri, workdir, tag, custom_steps):
 @click.option(
     "--ssh-key",
     type=click.File("r"),
-    help="path to a SSH private key, eg: ~/home/.ssh/id_rsa",
+    help="path to a SSH private key, eg: ~/.ssh/id_rsa",
 )
 @click.option(
     "--custom-steps",
@@ -146,7 +146,7 @@ def build(model_uri, tag, ssh_key, custom_steps):
 
         path to a SSH private key
         eg:
-            "~/home/.ssh/id_rsa"
+            "~/.ssh/id_rsa"
 
     custom_steps : str, default: None
         (multiline) string with custom Dockerfile directives (steps)
