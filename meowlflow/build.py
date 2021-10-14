@@ -216,7 +216,7 @@ _install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
 ENV {disable_env}="true"
             """.format(
             disable_env=mlflow_backend.DISABLE_ENV_CREATION,
-            model_dir=str(posixpath.join(model_cwd, os.path.basename(model_path))),
+            model_dir=str(posixpath.join("model_dir", os.path.basename(model_path))),
         )
 
     mlflow_home = os.path.abspath(mlflow_home) if mlflow_home else None
