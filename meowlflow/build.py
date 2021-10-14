@@ -209,11 +209,11 @@ def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
             model_uri, output_path=model_cwd
         )
         return """
-            COPY {model_dir} /opt/ml/model
-            RUN python -c \
-            'from mlflow.models.container import _install_pyfunc_deps;\
-            _install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
-            ENV {disable_env}="true"
+COPY {model_dir} /opt/ml/model
+RUN python -c \
+'from mlflow.models.container import _install_pyfunc_deps;\
+_install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
+ENV {disable_env}="true"
             """.format(
             disable_env=mlflow_backend.DISABLE_ENV_CREATION,
             model_dir=str(posixpath.join(model_cwd, os.path.basename(model_path))),
