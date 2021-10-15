@@ -17,7 +17,6 @@ ARG SSH_KEY
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
          wget \
          curl \
-         nginx \
          ca-certificates \
          bzip2 \
          build-essential \
@@ -58,12 +57,11 @@ COPY --from=build /home /home
 COPY --from=build /opt /opt
 COPY --from=build /lib /lib
 COPY --from=build /miniconda /miniconda
-COPY --from=build /var /var
-COPY --from=build /etc /etc
 
 ENV MLFLOW_DISABLE_ENV_CREATION="true"
 ENV PATH="/miniconda/bin:$PATH"
-ENV GUNICORN_CMD_ARGS="--timeout 60 -k gevent"
+ENV GUNICORN_CMD_ARGS="--bind 0.0.0.0:8000 --timeout 60 -k gevent"
+ENV DISABLE_NGINX=true
 
 WORKDIR /opt/mlflow
 ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve()"]
@@ -122,16 +120,6 @@ def build(model_uri, tag, ssh_key, custom_steps):
 
     Builds a Docker image whose default entrypoint serves the specified MLflow
     model at port 8080 within the container, using the 'python_function' flavor.
-
-    NOTE
-
-    by default, the container will start nginx and gunicorn processes. If you don't need the
-    nginx process to be started (for instance if you deploy your container to Google Cloud Run),
-    you can disable it via the DISABLE_NGINX environment variable:
-    .. code:: bash
-        docker run -p 5001:8080 -e DISABLE_NGINX=true "my-image-name"
-    See https://www.mlflow.org/docs/latest/python_api/mlflow.pyfunc.html for more information on the
-    'python_function' flavor.
 
     Parameters
 
