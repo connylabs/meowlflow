@@ -120,7 +120,7 @@ def sidecar(endpoint, upstream, schema_path, host, port):
         async with aiohttp.ClientSession() as session:
             async with session.post(upstream, data=data, headers=headers) as response:
 
-                return schema.Response.transform(await response.text())
+                return schema.Response.transform(await response.json())
 
     app.include_router(info.router)
     app.include_router(api.router)
