@@ -10,12 +10,12 @@ _COMPARE = {
 }
 
 
-def get_run_by_sha(gitsha, experiment_id):
+def get_run_by_sha(commit, experiment_id):
     """get the run for a given git-commit-sha and experiment-id
 
     Parameters
     ----------
-    gitsha : str
+    commit : str
     experiment_id : int
 
     Returns
@@ -23,7 +23,7 @@ def get_run_by_sha(gitsha, experiment_id):
     mlflow Run instance
     """
     run = mlflow.search_runs(experiment_id,
-                             filter_string=f"tags.mlflow.source.git.commit = \"{gitsha}\"",
+                             filter_string=f"tags.mlflow.source.git.commit = \"{commit}\"",
                              max_results=1,
                              output_format="list")[0]
     return run
@@ -69,7 +69,7 @@ def register_model(run, model_name):
     return _REGISTRY.create_model_version(model_name, model_uri, run.info.run_id)
 
 
-@click.argument("gitsha", type=str)
+@click.argument("commit", type=str)
 @click.argument("experiment_id", type=int)
 @click.argument("model_name", type=str)
 @click.option("--metric", default="test_f1", type=str, show_default=True)
@@ -84,14 +84,14 @@ def register_model(run, model_name):
 )
 @click.option("--stage", default="staging", type=str, show_default=True)
 @click.option("--force", is_flag=True)
-def promote_model(gitsha,
+def promote_model(commit,
                   experiment_id,
                   model_name,
                   metric="test_f1",
                   direction="maximize",
                   stage="staging",
                   force=False):
-    """attempt promotion of model with a given gitsha and experiment-id
+    """attempt promotion of model with a given commit and experiment-id
 
     in order to promote
 
@@ -100,7 +100,7 @@ def promote_model(gitsha,
 
     Parameters
     ----------
-    gitsha : str
+    commit : str
     experiment_id : int
     model_name : str, name to register for the model
     metric_name : str, default: "test_f1"
@@ -118,7 +118,7 @@ def promote_model(gitsha,
     -------
     mlflow RegisteredModelVersion instance
     """
-    run = get_run_by_sha(gitsha, experiment_id)
+    run = get_run_by_sha(commit, experiment_id)
     staged_run = get_run_by_stage(stage, model_name)
 
     promote = force or _COMPARE[direction](
