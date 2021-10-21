@@ -84,7 +84,13 @@ def register_model(run, model_name):
 )
 @click.option("--stage", default="staging", type=str, show_default=True)
 @click.option("--force", is_flag=True)
-def promote_model(gitsha, experiment_id, model_name, metric="test_f1", direction="maximize", stage="staging", force=False):
+def promote_model(gitsha,
+                  experiment_id,
+                  model_name,
+                  metric="test_f1",
+                  direction="maximize",
+                  stage="staging",
+                  force=False):
     """attempt promotion of model with a given gitsha and experiment-id
 
     in order to promote
