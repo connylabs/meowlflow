@@ -2,12 +2,11 @@ import click
 import mlflow
 
 
-_REGISTRY = mlflow.tracking._model_registry.client.ModelRegistryClient(mlflow.get_registry_uri())
+_REGISTRY = mlflow.tracking._model_registry.client.ModelRegistryClient(
+    mlflow.get_registry_uri()
+)
 
-_COMPARE = {
-    "maximize": float.__gt__,
-    "minimize": float.__lt__
-}
+_COMPARE = {"maximize": float.__gt__, "minimize": float.__lt__}
 
 
 def get_run_by_sha(commit, experiment_id):
@@ -22,10 +21,12 @@ def get_run_by_sha(commit, experiment_id):
     -------
     mlflow Run instance
     """
-    run = mlflow.search_runs(experiment_id,
-                             filter_string=f"tags.mlflow.source.git.commit = \"{commit}\"",
-                             max_results=1,
-                             output_format="list")[0]
+    run = mlflow.search_runs(
+        experiment_id,
+        filter_string=f'tags.mlflow.source.git.commit = "{commit}"',
+        max_results=1,
+        output_format="list",
+    )[0]
     return run
 
 
@@ -42,7 +43,9 @@ def get_run_by_stage(stage, model_name):
     -------
     mlflow Run instance
     """
-    rms = _REGISTRY.search_registered_models(filter_string=f"name='{model_name}'", max_results=1)
+    rms = _REGISTRY.search_registered_models(
+        filter_string=f"name='{model_name}'", max_results=1
+    )
     if not rms:
         raise ValueError(f"Found no registered model with name: {model_name}")
 
@@ -50,7 +53,9 @@ def get_run_by_stage(stage, model_name):
         if version.current_stage.lower() == stage.lower():
             return mlflow.get_run(version.run_id)
 
-    raise ValueError(f"Found no registered model with name: {model_name}, satisfying stage: {stage}")
+    raise ValueError(
+        f"Found no registered model with name: {model_name}, satisfying stage: {stage}"
+    )
 
 
 def register_model(run, model_name):
@@ -76,21 +81,20 @@ def register_model(run, model_name):
 @click.option(
     "--direction",
     default="maximize",
-    type=click.Choice(
-        _COMPARE.keys(),
-        case_sensitive=False
-        ),
-    show_default=True
+    type=click.Choice(_COMPARE.keys(), case_sensitive=False),
+    show_default=True,
 )
 @click.option("--stage", default="staging", type=str, show_default=True)
 @click.option("--force", is_flag=True)
-def promote_model(commit,
-                  experiment_id,
-                  model_name,
-                  metric="test_f1",
-                  direction="maximize",
-                  stage="staging",
-                  force=False):
+def promote_model(
+    commit,
+    experiment_id,
+    model_name,
+    metric="test_f1",
+    direction="maximize",
+    stage="staging",
+    force=False,
+):
     """attempt promotion of model with a given commit and experiment-id
 
     in order to promote
@@ -122,16 +126,19 @@ def promote_model(commit,
     staged_run = get_run_by_stage(stage, model_name)
 
     promote = force or _COMPARE[direction](
-        run.data.metrics[metric],
-        staged_run.data.metrics[metric]
+        run.data.metrics[metric], staged_run.data.metrics[metric]
     )
 
     if not promote:
-        print(f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'")
+        print(
+            f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"
+        )
         return
 
     model_version = register_model(run, model_name)
-    model_version = _REGISTRY.transition_model_version_stage(model_name, model_version.version, stage=stage)
+    model_version = _REGISTRY.transition_model_version_stage(
+        model_name, model_version.version, stage=stage
+    )
 
     print(f"Promoted {run.info.run_id} to stage '{stage}'!")
     return model_version
