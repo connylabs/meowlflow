@@ -1,3 +1,5 @@
+import sys
+
 import click
 import mlflow
 
@@ -86,6 +88,13 @@ def register_model(run, model_name):
 )
 @click.option("--stage", default="staging", type=str, show_default=True)
 @click.option("--force", is_flag=True)
+@click.option(
+    "--exit-code",
+    default=0,
+    type=int,
+    show_default=True,
+    help="exit code to return when model is NOT promoted",
+)
 def promote_model(
     commit,
     experiment_id,
@@ -94,6 +103,7 @@ def promote_model(
     direction="maximize",
     stage="staging",
     force=False,
+    exit_code=0,
 ):
     """attempt promotion of model with a given commit and experiment-id
 
@@ -117,6 +127,8 @@ def promote_model(
     force : bool, default: False
         whether to register and promote the given model regardless of its score
         compared to the currently staged model
+    exit_code : int, default: 0
+        exit code to return when model is NOT promoted
 
     Returns
     -------
@@ -133,7 +145,7 @@ def promote_model(
         print(
             f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"
         )
-        return
+        sys.exit(exit_code)
 
     model_version = register_model(run, model_name)
     model_version = _REGISTRY.transition_model_version_stage(
