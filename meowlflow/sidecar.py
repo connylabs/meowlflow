@@ -114,7 +114,7 @@ def sidecar(endpoint, upstream, schema_path, host, port):
 
     @api.router.post(endpoint, response_model=schema.Response)
     async def infer(request: schema.Request):
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type":"application/json; format=pandas-records"}
         data = request.transform()
 
         async with aiohttp.ClientSession() as session:
