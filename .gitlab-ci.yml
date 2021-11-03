@@ -21,6 +21,19 @@ build-container:
   extends: .build-container
   stage: build-containers
 
+lint:
+  tags:
+    - kubernetes
+  stage: test
+  needs: []
+  image:
+    name: python:3.9
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - pip install -r requirements_dev.txt
+    - make lint
+    - make black-test
+
 tag image:
   needs:
     - build-container
@@ -36,15 +49,3 @@ tag image:
     name: $OCI_REPO/conny-tools/crane-conny:latest
   script:
     - crane cp $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:$CI_COMMIT_REF_SLUG
-
-lint:
-  tags:
-    - kubernetes
-  stage: test
-  image:
-    name: python:3.9
-    entrypoint: ["/bin/sh", "-c"]
-  script:
-    - pip install -r requirements_dev.txt
-    - make lint
-    - make black-test
