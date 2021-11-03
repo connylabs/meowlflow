@@ -43,7 +43,7 @@ def get_run_by_stage(stage, model_name):
 
     Returns
     -------
-    mlflow Run instance
+    mlflow Run instance or None
     """
     rms = _REGISTRY.search_registered_models(
         filter_string=f"name='{model_name}'", max_results=1
@@ -54,10 +54,6 @@ def get_run_by_stage(stage, model_name):
     for version in rms[0].latest_versions:
         if version.current_stage.lower() == stage.lower():
             return mlflow.get_run(version.run_id)
-
-    raise ValueError(
-        f"Found no registered model with name: {model_name}, satisfying stage: {stage}"
-    )
 
 
 def register_model(run, model_name):
@@ -137,15 +133,16 @@ def promote_model(
     run = get_run_by_sha(commit, experiment_id)
     staged_run = get_run_by_stage(stage, model_name)
 
-    promote = force or _COMPARE[direction](
-        run.data.metrics[metric], staged_run.data.metrics[metric]
-    )
-
-    if not promote:
-        print(
-            f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"
+    if staged_run is not None:
+        promote = force or _COMPARE[direction](
+            run.data.metrics[metric], staged_run.data.metrics[metric]
         )
-        sys.exit(exit_code)
+
+        if not promote:
+            print(
+                f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"
+            )
+            sys.exit(exit_code)
 
     model_version = register_model(run, model_name)
     model_version = _REGISTRY.transition_model_version_stage(
