@@ -4,11 +4,13 @@ import click
 import mlflow
 
 
-_REGISTRY = mlflow.tracking._model_registry.client.ModelRegistryClient(
-    mlflow.get_registry_uri()
-)
-
 _COMPARE = {"maximize": float.__gt__, "minimize": float.__lt__}
+
+
+def _get_registry():
+    return mlflow.tracking._model_registry.client.ModelRegistryClient(
+        mlflow.get_registry_uri()
+    )
 
 
 def get_run_by_sha(commit, experiment_id):
@@ -45,7 +47,7 @@ def get_run_by_stage(stage, model_name):
     -------
     mlflow Run instance or None
     """
-    rms = _REGISTRY.search_registered_models(
+    rms = _get_registry().search_registered_models(
         filter_string=f"name='{model_name}'", max_results=1
     )
     if not rms:
@@ -69,7 +71,7 @@ def register_model(run, model_name):
     mlflow ModelVersion instance
     """
     model_uri = run.info.artifact_uri + "/model"
-    return _REGISTRY.create_model_version(model_name, model_uri, run.info.run_id)
+    return _get_registry().create_model_version(model_name, model_uri, run.info.run_id)
 
 
 @click.argument("commit", type=str)
@@ -145,7 +147,7 @@ def promote_model(
             sys.exit(exit_code)
 
     model_version = register_model(run, model_name)
-    model_version = _REGISTRY.transition_model_version_stage(
+    model_version = _get_registry().transition_model_version_stage(
         model_name, model_version.version, stage=stage
     )
 
