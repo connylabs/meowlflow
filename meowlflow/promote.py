@@ -6,11 +6,11 @@ import mlflow
 
 _COMPARE = {"maximize": float.__gt__, "minimize": float.__lt__}
 
+
 def _get_registry():
-    _REGISTRY = mlflow.tracking._model_registry.client.ModelRegistryClient(
+    return mlflow.tracking._model_registry.client.ModelRegistryClient(
         mlflow.get_registry_uri()
     )
-    return _REGISTRY
 
 
 def get_run_by_sha(commit, experiment_id):
