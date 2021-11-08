@@ -42,8 +42,4 @@ class Response(BaseResponse):
         return {"predictions": data}
 
     class Config:
-        schema_extra = {
-            "example": {
-                "predictions": [1, 0, 1]
-            }
-        }
+        schema_extra = {"example": {"predictions": [1, 0, 1]}}
