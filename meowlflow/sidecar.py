@@ -73,8 +73,6 @@ app.add_middleware(ProxyHeadersMiddleware)
 app.add_middleware(SentryAsgiMiddleware)
 app.add_route("/metrics", handle_metrics)
 app.middleware("http")(catch_exceptions_middleware)
-# Uncomment to check a token before serving the API
-# app.middleware("http")(add_check_token)
 
 
 @click.option("--endpoint", default="/infer", type=click.Path(), show_default=True)
@@ -97,8 +95,19 @@ def sidecar(endpoint, upstream, schema_path, host, port):
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
 
-    endpoint = _to_endpoint_path(endpoint)
+    logger.info(f"Setting inference endpoint to {endpoint}")
+    logger.info(f"Using model upstream at {upstream}")
+    logger.info(f"Using host {host}")
+    logger.info(f"Using port {port}")
 
+    register_endpoint(logger, api.router, endpoint, upstream, schema_path)
+
+    app.include_router(info.router)
+    app.include_router(api.router)
+    uvicorn.run(app, host=host, port=port, log_level="debug")
+
+
+def register_endpoint(logger, router, endpoint, upstream, schema_path):
     logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 
@@ -107,21 +116,13 @@ def sidecar(endpoint, upstream, schema_path, host, port):
     if not issubclass(schema.Response, base.BaseResponse):
         raise TypeError(f"Expected {schema.Response} to implement {base.BaseResponse}")
 
-    logger.info(f"Setting inference endpoint to {endpoint}")
-    logger.info(f"Using model upstream at {upstream}")
-    logger.info(f"Using host {host}")
-    logger.info(f"Using port {port}")
+    endpoint = _to_endpoint_path(endpoint)
 
-    @api.router.post(endpoint, response_model=schema.Response)
+    @router.post(endpoint, response_model=schema.Response)
     async def infer(request: schema.Request):
         headers = {"Content-Type": "application/json; format=pandas-records"}
         data = request.transform()
 
         async with aiohttp.ClientSession() as session:
             async with session.post(upstream, data=data, headers=headers) as response:
-
                 return schema.Response.transform(await response.json())
-
-    app.include_router(info.router)
-    app.include_router(api.router)
-    uvicorn.run(app, host=host, port=port, log_level="debug")
