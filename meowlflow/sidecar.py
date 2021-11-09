@@ -100,14 +100,14 @@ def sidecar(endpoint, upstream, schema_path, host, port):
     logger.info(f"Using host {host}")
     logger.info(f"Using port {port}")
 
-    register_endpoint(logger, api.router, endpoint, upstream, schema_path)
+    register_schema(logger, app, api.router, endpoint, upstream, schema_path)
 
     app.include_router(info.router)
     app.include_router(api.router)
     uvicorn.run(app, host=host, port=port, log_level="debug")
 
 
-def register_endpoint(logger, router, endpoint, upstream, schema_path):
+def register_schema(logger, app, router, endpoint, upstream, schema_path):
     logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 
@@ -115,6 +115,18 @@ def register_endpoint(logger, router, endpoint, upstream, schema_path):
         raise TypeError(f"Expected {schema.Request} to implement {base.BaseRequest}")
     if not issubclass(schema.Response, base.BaseResponse):
         raise TypeError(f"Expected {schema.Response} to implement {base.BaseResponse}")
+
+    for attr in [
+        "title",
+        "description",
+        "version",
+        "terms_of_service",
+        "license_info",
+        "servers",
+    ]:
+        value = getattr(schema, attr, None)
+        if value is not None:
+            setattr(schema, attr, value)
 
     endpoint = _to_endpoint_path(endpoint)
 
