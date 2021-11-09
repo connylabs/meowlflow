@@ -21,6 +21,19 @@ build-container:
   extends: .build-container
   stage: build-containers
 
+diff:
+  tags:
+    - kubernetes
+  stage: test
+  needs: []
+  image:
+    name: python:3.9
+    entrypoint: ['']
+  script:
+    - make README.md -B
+    - |
+        [ "$(git status --porcelain 2>/dev/null | wc -l )" -eq 0 ]
+
 lint:
   tags:
     - kubernetes
@@ -28,7 +41,7 @@ lint:
   needs: []
   image:
     name: python:3.9
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ['']
   script:
     - pip install -r requirements_dev.txt
     - make lint
