@@ -30,4 +30,5 @@ COPY --from=build /lib /lib
 COPY --from=build /app /app
 
 WORKDIR /app
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/meowlflow/prometheus
 ENTRYPOINT ["meowlflow"]
