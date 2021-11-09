@@ -12,31 +12,19 @@ title = "Document Splitter"
 version = "0.1.0"
 
 
-class Page(BaseModel):
-    text: str
-
-
 class Request(BaseRequest):
-    samples: List[Page]
+    __root__: List[Text]
 
     def transform(self):
-        return json.dumps({"columns": [sample.text for sample in self.samples]})
+        return json.dumps([[page] for page in self.__root__])
 
     class Config:
         schema_extra = {
-            "example": {
-                "samples": [
-                    {
-                        "text": "page 1 of 2\nfoo",
-                    },
-                    {
-                        "text": "page 2 of 2\nbar",
-                    },
-                    {
-                        "text": "page 1 of 1\nbaz",
-                    },
-                ]
-            }
+            "example": [
+                "page 1 of 2\nfoo",
+                "page 2 of 2\nbar",
+                "page 1 of 1\nbaz",
+            ]
         }
 
 
