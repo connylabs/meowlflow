@@ -1,15 +1,17 @@
 # meowlflow
-MLFlow deployments with modular FastAPI sidecars
+Meowlflow makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.
+Meowlflow allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
+Meowlflow also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
 
 # Installation
 `python setup.py`
 
-# Run
+# Serve
 Deploy an MLFlow model receiving inputs (eg.) at `http://127.0.0.1:5000/invocations`
-Then with `meowlflow` you can define a sidecar API hosted at `0.0.0.0` and port `8000`
+Then with `meowlflow` you can run a sidecar API hosted at `0.0.0.0` and port `8000`
 supporting your custom schema by running:
 ```
-meowlflow --endpoint infer \
+meowlflow sidecar --endpoint infer \
 --upstream http://127.0.0.1:5000/invocations \
 --host 0.0.0.0 \
 --port 8000 \
@@ -18,26 +20,27 @@ meowlflow --endpoint infer \
 
 You can then send samples for scoring to the sidecar by hitting (depending on your schema):
 ```
-curl -d '{"samples": [{"text":"meow"}, {"text": "meowv2"}]}' \
+curl -d '["meow", "meowv2"]' \
 -H "Content-Type: application/json" \
--X POST http://127.0.0.1:8000/infer
+-X POST http://127.0.0.1:8000/api/v1/infer
 ```
 
-FastAPI will automatically generate Docs with example for your API at `http://127.0.0.1:8000/docs`
+FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
 
 # Schemas
-You need to define the `Request` and `Response` schemas.
-This is done by creating a `schema.py` file containing both models and placing
-it at a place where `meowlflow` can see it, for instance at
+You need to define the `Request` and `Response` schemas for your model's API.
+This is done by creating a `schema.py` file containing both schemas and placing
+the file somewhere `meowlflow` can read it, for instance at
 `/var/lib/meowlflow/schema.py`.
 
-The `Request` model must implement a `transform` method to serialise the payload
+The `Request` class must implement a `transform` method to serialise the payload
 in  a shape that can be used by your MLFlow model.
 
-The `Response` model should also implement a `transform` classmethod to convert
-the model output to your desired shape.
+The `Response` class should implement a `transform` classmethod to convert
+the model output to your desired response shape.
 
 For the above example, you could use the following custom schema:
+
 [replace]: # (examples/document_splitter_schema.py)
 ```python
 from typing import List
