@@ -43,8 +43,8 @@ For the above example, you could use the following custom schema:
 
 [replace]: # (examples/document_splitter_schema.py)
 ```python
-from typing import List
 import json
+from typing import List, Text
 
 from pydantic import BaseModel
 
