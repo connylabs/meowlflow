@@ -20,9 +20,15 @@ from meowlflow.sidecar import register_infer_endpoint
     type=click.Path(),
     show_default=True,
 )
+@click.option(
+    "--model-path",
+    default=MODEL_PATH,
+    type=click.Path(),
+    show_default=True,
+)
 @click.option("--host", default="0.0.0.0", type=str, show_default=True)
 @click.option("--port", default=8000, type=int, show_default=True)
-def serve(endpoint, schema_path, host, port):
+def serve(endpoint, schema_path, model_path, host, port):
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
@@ -31,7 +37,7 @@ def serve(endpoint, schema_path, host, port):
     logger.info(f"Using host {host}")
     logger.info(f"Using port {port}")
 
-    model = load_model(path_to_local_file_uri(MODEL_PATH))
+    model = load_model(path_to_local_file_uri(model_path))
     model_schema = model.metadata.get_input_schema()
 
     app = FastAPI()
