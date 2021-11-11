@@ -120,7 +120,7 @@ def get_infer(upstream):
     return infer
 
 
-def register_infer_endpoint(logger, app, router, endpoint, infer, schema_path):
+def register_infer_endpoint(logger, app, router, endpoint, _infer, schema_path):
     logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 
@@ -144,7 +144,7 @@ def register_infer_endpoint(logger, app, router, endpoint, infer, schema_path):
     endpoint = _to_endpoint_path(endpoint)
 
     @router.post(endpoint, response_model=schema.Response)
-    async def _infer(request: schema.Request):
+    async def infer(request: schema.Request):
         data = request.transform()
-        response = await infer(data)
+        response = await _infer(data)
         return schema.Response.transform(response)
