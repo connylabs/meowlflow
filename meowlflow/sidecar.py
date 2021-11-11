@@ -100,14 +100,27 @@ def sidecar(endpoint, upstream, schema_path, host, port):
     logger.info(f"Using host {host}")
     logger.info(f"Using port {port}")
 
-    register_schema(logger, app, api.router, endpoint, upstream, schema_path)
+    register_infer_endpoint(
+        logger, app, api.router, endpoint, get_infer(upstream), schema_path
+    )
 
     app.include_router(info.router)
     app.include_router(api.router)
     uvicorn.run(app, host=host, port=port, log_level="debug")
 
 
-def register_schema(logger, app, router, endpoint, upstream, schema_path):
+def get_infer(upstream):
+    headers = {"Content-Type": "application/json; format=pandas-records"}
+
+    async def infer(data):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(upstream, data=data, headers=headers) as response:
+                return await response.json()
+
+    return infer
+
+
+def register_infer_endpoint(logger, app, router, endpoint, infer, schema_path):
     logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 
@@ -131,10 +144,7 @@ def register_schema(logger, app, router, endpoint, upstream, schema_path):
     endpoint = _to_endpoint_path(endpoint)
 
     @router.post(endpoint, response_model=schema.Response)
-    async def infer(request: schema.Request):
-        headers = {"Content-Type": "application/json; format=pandas-records"}
+    async def _infer(request: schema.Request):
         data = request.transform()
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(upstream, data=data, headers=headers) as response:
-                return schema.Response.transform(await response.json())
+        response = await infer(data)
+        return schema.Response.transform(response)

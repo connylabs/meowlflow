@@ -1,5 +1,5 @@
-from typing import List
 import json
+from typing import List, Text
 
 from pydantic import BaseModel
 
