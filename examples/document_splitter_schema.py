@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 from meowlflow.api.base import BaseRequest, BaseResponse
 
-description = "A model that predicts document boundaries, where the length of the prediction array is equal to the "
-"number of pages in the input, a '0' at a given index means the page belongs to the current document, and a '1' marks "
+description = "A model that predicts document boundaries, where the length of the prediction array is equal to the "\
+"number of pages in the input, a '0' at a given index means the page belongs to the current document, and a '1' marks "\
 "the start of a new document on the given index."
 title = "Document Splitter"
 version = "0.1.0"
