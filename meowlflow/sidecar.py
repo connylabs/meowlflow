@@ -139,7 +139,7 @@ def register_infer_endpoint(logger, app, router, endpoint, _infer, schema_path):
     ]:
         value = getattr(schema, attr, None)
         if value is not None:
-            setattr(schema, attr, value)
+            setattr(app, attr, value)
 
     endpoint = _to_endpoint_path(endpoint)
 

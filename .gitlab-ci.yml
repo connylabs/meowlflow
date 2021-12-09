@@ -47,6 +47,18 @@ lint:
     - make lint
     - make black-test
 
+openapi:
+  tags:
+    - kubernetes
+  stage: test
+  needs: []
+  image:
+    name: python:3.9
+    entrypoint: ['']
+  script:
+    - pip install -e .
+    - diff examples/document_splitter_schema.json <(meowlflow openapi --schema-path=examples/document_splitter_schema.py 2>/dev/null)
+
 tag image:
   needs:
     - build-container
