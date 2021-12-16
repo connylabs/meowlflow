@@ -4,7 +4,7 @@ Meowlflow makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.
 Meowlflow allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
 Meowlflow also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
 
-# Installation
+## Installation
 `pip install .`
 
 # Serve
