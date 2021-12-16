@@ -7,7 +7,7 @@ Meowlflow also provides built-in observability for model APIs with Prometheus me
 ## Installation
 `pip install .`
 
-# Serve
+## Serve
 With `meowlflow` you can serve your MLFlow model with your custom schema with one command:
 ```
 meowlflow serve --endpoint infer \
