@@ -29,7 +29,7 @@ curl -d '["meow", "meowv2"]' \
 FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
 
 
-# Development
+## Development
 The easiest way to develop your schema and API is to
  1. use the `meowlflow serve` command with a remote `model-path` URI (eg. `s3://mlflow/prod/artifacts/2/08c...a85/artifacts/model`)
  2. check `http://127.0.0.1:8000/docs` (or wherever you deployed to)
