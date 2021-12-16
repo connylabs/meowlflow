@@ -39,7 +39,7 @@ The easiest way to develop your schema and API is to
 # Serve with Sidecar
 Alternatively, you can use meowlflow to serve an expressive API alongside your existing MLFlow model deployment.
 
-For example, you deploy an MLFlow model receiving inputs (eg.) at `http://127.0.0.1:5000/invocations`
+For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`
 Then with `meowlflow` you can run a sidecar API hosted at `0.0.0.0` and port `8000`
 supporting your custom schema by running:
 ```
