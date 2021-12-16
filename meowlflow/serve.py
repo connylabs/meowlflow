@@ -51,7 +51,7 @@ def serve(endpoint, schema_path, model_path, host, port):
                     model_path, output_path=temp_dir
                 )
                 model = load_model(path_to_local_file_uri(local_path))
-                logger.info(f"Loaded remote model artifact at {model_path}")
+                logger.info(f"Loaded remote model artifact from {model_path}")
         except Exception:
             # if both fail, raise the original error
             raise e
