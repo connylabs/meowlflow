@@ -59,7 +59,7 @@ curl -d '["meow", "meowv2"]' \
 
 FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
 
-# Schemas
+## Schemas
 You need to define the `Request` and `Response` schemas for your model's API.
 This is done by creating a `schema.py` file containing both schemas and placing
 the file somewhere `meowlflow` can read it, for instance at
