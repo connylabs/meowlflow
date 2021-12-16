@@ -36,7 +36,7 @@ The easiest way to develop your schema and API is to
  3. use the `Try it out` feature of the FastAPI docs to send requests to your endpoint
 
 
-# Serve with Sidecar
+## Serve with Sidecar
 Alternatively, you can use meowlflow to serve an expressive API alongside your existing MLFlow model deployment.
 
 For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`
