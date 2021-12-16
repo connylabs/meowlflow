@@ -1,13 +1,45 @@
 # meowlflow
-Meowlflow makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.
+Meowlflow makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.  
+
 Meowlflow allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
 Meowlflow also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
 
-# Installation
-`python setup.py`
+## Installation
+`pip install .`
 
-# Serve
-Deploy an MLFlow model receiving inputs (eg.) at `http://127.0.0.1:5000/invocations`
+## Serve
+With `meowlflow` you can serve your MLFlow model with your custom schema with one command:
+```
+meowlflow serve --endpoint infer \
+--model-path path/to/model/uri \
+--host 0.0.0.0 \
+--port 8000 \
+--schema-path /var/lib/meowlflow/schema.py
+```
+
+Meowlflow will deploy you MLFlow model at `http://127.0.0.1:8000/api/v1/infer` with your custom schema.
+Note that the model-path can be either a local uri path or the remote uri on the MLFlow Model server.
+
+You can then send samples for scoring by hitting (depending on your schema):
+```
+curl -d '["meow", "meowv2"]' \
+-H "Content-Type: application/json" \
+-X POST http://127.0.0.1:8000/api/v1/infer
+```
+FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
+
+
+## Development
+The easiest way to develop your schema and API is to
+ 1. use the `meowlflow serve` command with a remote `model-path` URI (eg. `s3://mlflow/prod/artifacts/2/08c...a85/artifacts/model`)
+ 2. check `http://127.0.0.1:8000/docs` (or wherever you deployed to)
+ 3. use the `Try it out` feature of the FastAPI docs to send requests to your endpoint
+
+
+## Serve with Sidecar
+Alternatively, you can use meowlflow to serve an expressive API alongside your existing MLFlow model deployment.
+
+For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`
 Then with `meowlflow` you can run a sidecar API hosted at `0.0.0.0` and port `8000`
 supporting your custom schema by running:
 ```
@@ -27,7 +59,7 @@ curl -d '["meow", "meowv2"]' \
 
 FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
 
-# Schemas
+## Schemas
 You need to define the `Request` and `Response` schemas for your model's API.
 This is done by creating a `schema.py` file containing both schemas and placing
 the file somewhere `meowlflow` can read it, for instance at
