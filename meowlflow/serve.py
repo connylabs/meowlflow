@@ -42,7 +42,7 @@ def serve(endpoint, schema_path, model_path, host, port):
     try:
         # try to load a local artifact
         model = load_model(path_to_local_file_uri(model_path))
-        logger.info(f"Loaded local model artifact at {model_path}")
+        logger.info(f"Loaded local model artifact from {model_path}")
     except OSError as e:
         try:
             # try to load a remote artifact
