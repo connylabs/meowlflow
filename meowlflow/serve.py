@@ -2,7 +2,6 @@ import logging
 from tempfile import TemporaryDirectory
 
 import click
-from fastapi import FastAPI
 import json
 from mlflow.models.container import MODEL_PATH
 from mlflow.pyfunc import load_model, scoring_server
@@ -12,7 +11,7 @@ from mlflow.pyfunc import backend as mlflow_backend
 import uvicorn
 
 from meowlflow.api import api, info
-from meowlflow.sidecar import register_infer_endpoint
+from meowlflow.sidecar import app, register_infer_endpoint
 
 
 @click.option("--endpoint", default="/infer", type=click.Path(), show_default=True)
@@ -57,7 +56,7 @@ def serve(endpoint, schema_path, model_path, host, port):
             raise e
 
     model_schema = model.metadata.get_input_schema()
-    app = FastAPI()
+
     register_infer_endpoint(
         logger, app, api.router, endpoint, get_infer(model, model_schema), schema_path
     )
