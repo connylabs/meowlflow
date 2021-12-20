@@ -8,14 +8,11 @@ RUN apt-get update
 RUN apt-get install -y openssl ca-certificates
 RUN apt-get install -y libffi-dev build-essential libssl-dev git rustc cargo
 RUN pip install pip -U
-COPY requirements_dev.txt .
-COPY requirements.txt .
-RUN pip install -r requirements_dev.txt -U
+COPY . $workdir
 RUN pip install -r requirements.txt -U
+RUN pip install .
 RUN apt-get remove --purge -y libffi-dev build-essential libssl-dev git rustc cargo
 RUN rm -rf /root/.cargo
-COPY . $workdir
-RUN pip install .
 
 # Squash layers
 FROM python:3.9-slim
