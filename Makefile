@@ -104,7 +104,7 @@ flake8:
 black:
 	poetry run black -t py39 conf tests $(project)
 
-black-test: install-poetry
+black-test:
 	poetry run black -t py39 conf tests $(project) --check
 
 SRC := $(shell find . -type f -name '*.py')
