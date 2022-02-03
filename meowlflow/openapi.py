@@ -5,10 +5,17 @@ import click
 from fastapi import FastAPI
 
 from meowlflow.api import api
-from meowlflow.sidecar import register_infer_endpoint
+from meowlflow.sidecar import (
+    register_infer_endpoint,
+)
 
 
-@click.option("--endpoint", default="/infer", type=click.Path(), show_default=True)
+@click.option(
+    "--endpoint",
+    default="/infer",
+    type=click.Path(),
+    show_default=True,
+)
 @click.option(
     "--schema-path",
     default="/var/lib/meowlflow/schema.py",
@@ -21,6 +28,13 @@ def openapi(endpoint, schema_path):
     logger = logging.getLogger(__name__)
 
     app = FastAPI()
-    register_infer_endpoint(logger, app, api.router, endpoint, None, schema_path)
+    register_infer_endpoint(
+        logger,
+        app,
+        api.router,
+        endpoint,
+        None,
+        schema_path,
+    )
     app.include_router(api.router)
     print(json.dumps(app.openapi()))

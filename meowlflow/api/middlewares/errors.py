@@ -15,10 +15,16 @@ async def catch_exceptions_middleware(request: Request, call_next):
         # you probably want some kind of logging here
         logger.error(error)
         logger.error(traceback.format_exc())
-        return JSONResponse({"error": error.to_dict()}, status_code=error.status_code)
+        return JSONResponse(
+            {"error": error.to_dict()},
+            status_code=error.status_code,
+        )
 
     except Exception as err:  # pylint: disable=broad-except
         logger.error(err)
         logger.error(traceback.format_exc())
         error = MeowlflowException("Internal server error", {})
-        return JSONResponse({"error": error.to_dict()}, status_code=error.status_code)
+        return JSONResponse(
+            {"error": error.to_dict()},
+            status_code=error.status_code,
+        )

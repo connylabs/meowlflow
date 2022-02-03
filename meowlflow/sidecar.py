@@ -8,13 +8,22 @@ import aiohttp
 import click
 from fastapi import FastAPI, Request
 import sentry_sdk
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
-from starlette_exporter import PrometheusMiddleware, handle_metrics
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from sentry_sdk.integrations.asgi import (
+    SentryAsgiMiddleware,
+)
+from starlette_exporter import (
+    PrometheusMiddleware,
+    handle_metrics,
+)
+from uvicorn.middleware.proxy_headers import (
+    ProxyHeadersMiddleware,
+)
 import uvicorn
 
 from meowlflow.api import api, info, base
-from meowlflow.api.middlewares.errors import catch_exceptions_middleware
+from meowlflow.api.middlewares.errors import (
+    catch_exceptions_middleware,
+)
 from meowlflow.exception import UnauthorizedAccess
 from meowlflow.config import GCONFIG
 
@@ -75,7 +84,12 @@ app.add_route("/metrics", handle_metrics)
 app.middleware("http")(catch_exceptions_middleware)
 
 
-@click.option("--endpoint", default="/infer", type=click.Path(), show_default=True)
+@click.option(
+    "--endpoint",
+    default="/infer",
+    type=click.Path(),
+    show_default=True,
+)
 @click.option(
     "--upstream",
     default="http://127.0.0.1:8080/invocations",
@@ -88,8 +102,18 @@ app.middleware("http")(catch_exceptions_middleware)
     type=click.Path(),
     show_default=True,
 )
-@click.option("--host", default="0.0.0.0", type=str, show_default=True)
-@click.option("--port", default=8000, type=int, show_default=True)
+@click.option(
+    "--host",
+    default="0.0.0.0",
+    type=str,
+    show_default=True,
+)
+@click.option(
+    "--port",
+    default=8000,
+    type=int,
+    show_default=True,
+)
 def sidecar(endpoint, upstream, schema_path, host, port):
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -101,12 +125,22 @@ def sidecar(endpoint, upstream, schema_path, host, port):
     logger.info(f"Using port {port}")
 
     register_infer_endpoint(
-        logger, app, api.router, endpoint, get_infer(upstream), schema_path
+        logger,
+        app,
+        api.router,
+        endpoint,
+        get_infer(upstream),
+        schema_path,
     )
 
     app.include_router(info.router)
     app.include_router(api.router)
-    uvicorn.run(app, host=host, port=port, log_level="debug")
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        log_level="debug",
+    )
 
 
 def get_infer(upstream):
@@ -114,13 +148,24 @@ def get_infer(upstream):
 
     async def infer(data):
         async with aiohttp.ClientSession() as session:
-            async with session.post(upstream, data=data, headers=headers) as response:
+            async with session.post(
+                upstream,
+                data=data,
+                headers=headers,
+            ) as response:
                 return await response.json()
 
     return infer
 
 
-def register_infer_endpoint(logger, app, router, endpoint, _infer, schema_path):
+def register_infer_endpoint(
+    logger,
+    app,
+    router,
+    endpoint,
+    _infer,
+    schema_path,
+):
     logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 

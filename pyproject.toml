@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "MeowlFlow"
+version = "0.1.0"
+description = "serving ML models like the cat's meow"
+authors = ["Conny Tech <tech@conny.legal>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.3"
+fastapi = "^0.73.0"
+requests = "^2.27.1"
+starlette = "0.17.1"
+starlette-exporter = "0.12.0"
+uvicorn = "^0.17.1"
+sentry-sdk = "^1.5.4"
+mlflow = "^1.23.1"
+boto3 = "^1.20.47"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+black = "^22.1.0"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+
+[tool.poetry.scripts]
+eee = "meowlflow.cli:cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310']
+include = '\.pyi?$'
+extend-exclude = ''
+
+[tool.isort]
+profile = 'black'
+
+[tool.pylint.messages_control]
+disable = "C0330, C0326"
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pytest]
+testpaths = 'tests/'
+
+[tool.mypy]
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+implicit_reexport = false
+strict_equality = true

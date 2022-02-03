@@ -30,7 +30,10 @@ def _get_git_sha():
                 .strip()[0:8]
                 .decode()
             )
-        except (OSError, subprocess.CalledProcessError):
+        except (
+            OSError,
+            subprocess.CalledProcessError,
+        ):
             pass
     return "unknown"
 

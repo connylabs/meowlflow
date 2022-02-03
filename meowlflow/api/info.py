@@ -20,6 +20,10 @@ async def index():
     return await version()
 
 
-@router.get("/version", tags=["info"], response_model=VersionResp)
+@router.get(
+    "/version",
+    tags=["info"],
+    response_model=VersionResp,
+)
 async def version() -> VersionResp:
     return VersionResp(version=meowlflow.__version__)
