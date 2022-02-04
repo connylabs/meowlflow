@@ -32,7 +32,11 @@ diff:
   script:
     - make README.md -B
     - |
-        [ "$(git status --porcelain 2>/dev/null | wc -l )" -eq 0 ]
+        DIFF="$(git status --porcelain 2>/dev/null )"
+        if [ "$(echo -n "$DIFF" | wc -l)" -ne 0 ]; then
+          printf 'README.md is out of date!\nDiff:\n%s\nRun:\n\tmake README.md\n' "$DIFF"
+          exit 1
+        fi
 
 lint:
   tags:
