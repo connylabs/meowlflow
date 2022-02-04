@@ -78,7 +78,10 @@ For the above example, you could use the following custom schema:
 import json
 from typing import List, Text
 
-from meowlflow.api.base import BaseRequest, BaseResponse
+from meowlflow.api.base import (
+    BaseRequest,
+    BaseResponse,
+)
 
 description = (
     "A model that predicts document boundaries, where the length of the prediction array is equal to "
