@@ -4,8 +4,12 @@ import posixpath
 from pathlib import Path
 
 import click
-from mlflow.pyfunc import backend as mlflow_backend
-from mlflow.models import docker_utils as mlflow_docker_utils
+from mlflow.pyfunc import (
+    backend as mlflow_backend,
+)
+from mlflow.models import (
+    docker_utils as mlflow_docker_utils,
+)
 
 
 _DOCKERFILE_TEMPLATE = """
@@ -65,7 +69,7 @@ ENV DISABLE_NGINX=true
 
 WORKDIR /opt/mlflow
 ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve()"]
-"""
+"""  # noqa: E501
 
 
 @click.argument("model-uri", type=str)
@@ -86,10 +90,15 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
 @click.option(
     "--custom-steps",
     type=str,
-    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',
+    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
 def generate(model_uri, workdir, tag, custom_steps):
-    _dockerfile = dockerfile(model_uri, workdir, tag, custom_steps=custom_steps)
+    _dockerfile = dockerfile(
+        model_uri,
+        workdir,
+        tag,
+        custom_steps=custom_steps,
+    )
     print(_dockerfile)
 
 
@@ -109,7 +118,7 @@ def generate(model_uri, workdir, tag, custom_steps):
 @click.option(
     "--custom-steps",
     type=str,
-    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',
+    help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
 def build(model_uri, tag, ssh_key, custom_steps):
     """MODEL_URI is a URI pointing to a model located in S3,
@@ -144,21 +153,41 @@ def build(model_uri, tag, ssh_key, custom_steps):
     """
     if ssh_key:
         ssh_key = ssh_key.read()
-        build_args = ["--build-arg", f"SSH_KEY={ssh_key}"]
+        build_args = [
+            "--build-arg",
+            f"SSH_KEY={ssh_key}",
+        ]
     else:
         build_args = []
 
     with mlflow_docker_utils.TempDir() as tmp:
         cwd = tmp.path()
-        _dockerfile = dockerfile(model_uri, cwd, tag, custom_steps=custom_steps)
+        _dockerfile = dockerfile(
+            model_uri,
+            cwd,
+            tag,
+            custom_steps=custom_steps,
+        )
 
         with open(os.path.join(cwd, "Dockerfile"), "w") as f:
             f.write(_dockerfile)
 
-        mlflow_docker_utils._logger.info("Building docker image with name %s", tag)
+        mlflow_docker_utils._logger.info(
+            "Building docker image with name %s",
+            tag,
+        )
         os.system("find {cwd}/".format(cwd=cwd))
         proc = Popen(
-            ["docker", "build", "-t", tag, "-f", "Dockerfile"] + build_args + ["."],
+            [
+                "docker",
+                "build",
+                "-t",
+                tag,
+                "-f",
+                "Dockerfile",
+            ]
+            + build_args
+            + ["."],
             cwd=cwd,
             stdout=mlflow_docker_utils.PIPE,
             stderr=mlflow_docker_utils.STDOUT,
@@ -168,7 +197,13 @@ def build(model_uri, tag, ssh_key, custom_steps):
             mlflow_docker_utils.eprint(x, end="")
 
 
-def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
+def dockerfile(
+    model_uri,
+    cwd,
+    tag,
+    mlflow_home=None,
+    custom_steps=None,
+):
     """produce a DOCKERFILE suitable for building yuor MLFlow model server
 
     Parameters
@@ -190,7 +225,9 @@ def dockerfile(model_uri, cwd, tag, mlflow_home=None, custom_steps=None):
     dockerfile : str
     """
 
-    def copy_model_into_container(dockerfile_context_dir):
+    def copy_model_into_container(
+        dockerfile_context_dir,
+    ):
         model_cwd = os.path.join(dockerfile_context_dir, "model_dir")
         os.mkdir(model_cwd)
         model_path = mlflow_backend._download_artifact_from_uri(
@@ -204,7 +241,12 @@ _install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
 ENV {disable_env}="true"
             """.format(
             disable_env=mlflow_backend.DISABLE_ENV_CREATION,
-            model_dir=str(posixpath.join("model_dir", os.path.basename(model_path))),
+            model_dir=str(
+                posixpath.join(
+                    "model_dir",
+                    os.path.basename(model_path),
+                )
+            ),
         )
 
     mlflow_home = os.path.abspath(mlflow_home) if mlflow_home else None

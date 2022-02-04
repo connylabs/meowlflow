@@ -4,7 +4,10 @@ import click
 import mlflow
 
 
-_COMPARE = {"maximize": float.__gt__, "minimize": float.__lt__}
+_COMPARE = {
+    "maximize": float.__gt__,
+    "minimize": float.__lt__,
+}
 
 
 def _get_registry():
@@ -48,7 +51,8 @@ def get_run_by_stage(stage, model_name):
     mlflow Run instance or None
     """
     rms = _get_registry().search_registered_models(
-        filter_string=f"name='{model_name}'", max_results=1
+        filter_string=f"name='{model_name}'",
+        max_results=1,
     )
     if not rms:
         raise ValueError(f"Found no registered model with name: {model_name}")
@@ -77,14 +81,24 @@ def register_model(run, model_name):
 @click.argument("commit", type=str)
 @click.argument("experiment_id", type=int)
 @click.argument("model_name", type=str)
-@click.option("--metric", default="test_f1", type=str, show_default=True)
+@click.option(
+    "--metric",
+    default="test_f1",
+    type=str,
+    show_default=True,
+)
 @click.option(
     "--direction",
     default="maximize",
     type=click.Choice(_COMPARE.keys(), case_sensitive=False),
     show_default=True,
 )
-@click.option("--stage", default="staging", type=str, show_default=True)
+@click.option(
+    "--stage",
+    default="staging",
+    type=str,
+    show_default=True,
+)
 @click.option("--force", is_flag=True)
 @click.option(
     "--exit-code",
@@ -137,18 +151,21 @@ def promote_model(
 
     if staged_run is not None:
         promote = force or _COMPARE[direction](
-            run.data.metrics[metric], staged_run.data.metrics[metric]
+            run.data.metrics[metric],
+            staged_run.data.metrics[metric],
         )
 
         if not promote:
             print(
-                f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"
+                f"Run {run.info.run_id} was not promoted over run {staged_run.info.run_id} to stage '{stage}'"  # noqa: E501
             )
             sys.exit(exit_code)
 
     model_version = register_model(run, model_name)
     model_version = _get_registry().transition_model_version_stage(
-        model_name, model_version.version, stage=stage
+        model_name,
+        model_version.version,
+        stage=stage,
     )
 
     print(f"Promoted {run.info.run_id} to stage '{stage}'!")

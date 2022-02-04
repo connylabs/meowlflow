@@ -24,7 +24,10 @@ def logfile_path(jsonfmt=False, debug=False):
     if debug or os.getenv("DEBUGLOG", "false").lower() == "true":
         _debug = "_debug"
 
-    return os.path.join(MEOWLFLOW_CONF_DIR, "logging%s%s.conf" % (_debug, _json))
+    return os.path.join(
+        MEOWLFLOW_CONF_DIR,
+        "logging%s%s.conf" % (_debug, _json),
+    )
 
 
 def getenv(name, default=None, convert=str):
@@ -58,7 +61,8 @@ MEOWLFLOW_API = getenv("MEOWLFLOW_API", "https://meowlflow.conny.dev")
 MEOWLFLOW_SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 MEOWLFLOW_ROOT_DIR = os.path.abspath(os.path.join(MEOWLFLOW_SOURCE_DIR, "../"))
 MEOWLFLOW_CONF_DIR = os.getenv(
-    "MEOWLFLOW_CONF_DIR", os.path.join(MEOWLFLOW_ROOT_DIR, "conf/")
+    "MEOWLFLOW_CONF_DIR",
+    os.path.join(MEOWLFLOW_ROOT_DIR, "conf/"),
 )
 MEOWLFLOW_CONF_FILE = os.getenv("MEOWLFLOW_CONF_FILE", None)
 MEOWLFLOW_DOWNLOAD_DIR = os.getenv("MEOWLFLOW_DOWNLOAD_DIR", "/tmp/meowlflow")
@@ -71,7 +75,8 @@ MEOWLFLOW_SENTRY_URL = os.getenv("MEOWLFLOW_SENTRY_URL", None)
 MEOWLFLOW_SENTRY_ENV = os.getenv("MEOWLFLOW_SENTRY_ENV", "development")
 
 PROMETHEUS_MULTIPROC_DIR = os.getenv(
-    "PROMETHEUS_MULTIPROC_DIR", os.path.join(MEOWLFLOW_TMP_DIR, "prometheus")
+    "PROMETHEUS_MULTIPROC_DIR",
+    os.path.join(MEOWLFLOW_TMP_DIR, "prometheus"),
 )
 os.environ["PROMETHEUS_MULTIPROC_DIR"] = PROMETHEUS_MULTIPROC_DIR
 
@@ -117,7 +122,10 @@ class MeowlflowConfig:
             instance = self
             instance.load_conffile(confpath)
         else:
-            instance = MeowlflowConfig(defaults=self.settings, confpath=confpath)
+            instance = MeowlflowConfig(
+                defaults=self.settings,
+                confpath=confpath,
+            )
         return instance
 
     def load_conf(self, conf):

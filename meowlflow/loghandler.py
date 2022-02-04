@@ -17,7 +17,14 @@ def _json_default(obj):
     Coerce everything to strings.
     All objects representing time get output as ISO8601.
     """
-    if isinstance(obj, (datetime.date, datetime.time, datetime.datetime)):
+    if isinstance(
+        obj,
+        (
+            datetime.date,
+            datetime.time,
+            datetime.datetime,
+        ),
+    ):
         return obj.isoformat()
     if isinstance(obj, Exception):
         return "Exception: %s" % str(obj)
@@ -97,7 +104,10 @@ class JsonFormatter(logging.Formatter):
             log_record[self.prefix_key] = {}
             target = log_record[self.prefix_key]
 
-        for field, value in record.__dict__.items():
+        for (
+            field,
+            value,
+        ) in record.__dict__.items():
             if field in self._fmt_parameters and field in RESERVED_ATTRS:
                 log_record[field] = value
             elif field not in RESERVED_ATTRS:
@@ -132,5 +142,7 @@ class JsonFormatter(logging.Formatter):
         self.add_fields(log_record, record, message_dict)
 
         return self.json_serializer(
-            log_record, default=self.json_default, cls=self.json_encoder
+            log_record,
+            default=self.json_default,
+            cls=self.json_encoder,
         )

@@ -8,7 +8,6 @@ import meowlflow
 
 from fastapi.testclient import TestClient
 from meowlflow.main import app
-from meowlflow.config import GCONFIG
 
 DEFAULT_PREFIX = "http://localhost:5000"
 
@@ -33,7 +32,9 @@ class TestServer:
             if params:
                 path = path + "?" + urllib.urlencode(params)
             return getattr(self.client, method)(
-                path, data=json.dumps(body), headers=self.headers
+                path,
+                data=json.dumps(body),
+                headers=self.headers,
             )
 
         def get(self, path, params=None, body=None):
@@ -111,7 +112,10 @@ class LiveTestServer(BaseTestServer):
 
         def _request(self, method, path, params, body):
             return getattr(self.client, method)(
-                path, params=params, data=json.dumps(body), headers=self.headers
+                path,
+                params=params,
+                data=json.dumps(body),
+                headers=self.headers,
             )
 
         def get(self, path, params=None, body=None):
@@ -127,7 +131,7 @@ class LiveTestServer(BaseTestServer):
         return res.content
 
     def _url_for(self, path):
-        return request.url_root + self.api_prefix + path
+        return DEFAULT_PREFIX + self.api_prefix + path
 
     def json(self, res):
         return res.json()

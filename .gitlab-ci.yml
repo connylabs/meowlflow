@@ -43,9 +43,22 @@ lint:
     name: python:3.9
     entrypoint: ['']
   script:
-    - pip install -r requirements_dev.txt
-    - make lint
+    - pip install poetry
+    - poetry install
+    - make flake8-test
     - make black-test
+
+smoketest:
+  tags:
+    - kubernetes
+  stage: test
+  needs: []
+  image:
+    name: python:3.9
+    entrypoint: ['']
+  script:
+    - pip install .
+    - python -c "from meowlflow.serve import app"
 
 openapi:
   tags:
@@ -56,8 +69,9 @@ openapi:
     name: python:3.9
     entrypoint: ['']
   script:
-    - pip install -e .
-    - diff examples/document_splitter_schema.json <(meowlflow openapi --schema-path=examples/document_splitter_schema.py 2>/dev/null)
+    - pip install poetry
+    - poetry install
+    - diff examples/document_splitter_schema.json <(poetry run meowlflow openapi --schema-path=examples/document_splitter_schema.py 2>/dev/null)
 
 tag image:
   needs:

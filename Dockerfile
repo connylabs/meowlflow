@@ -9,7 +9,7 @@ RUN apt-get install -y openssl ca-certificates
 RUN apt-get install -y libffi-dev build-essential libssl-dev git rustc cargo
 RUN pip install pip -U
 COPY . $workdir
-RUN pip install -r requirements.txt -U
+RUN pip install poetry
 RUN pip install .
 RUN apt-get remove --purge -y libffi-dev build-essential libssl-dev git rustc cargo
 RUN rm -rf /root/.cargo
