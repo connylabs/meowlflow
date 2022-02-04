@@ -166,7 +166,8 @@ def register_infer_endpoint(
     _infer,
     schema_path,
 ):
-    logger.info(f"Loading schema module from {schema_path}")
+    if logger is not None:
+        logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
 
     if not issubclass(schema.Request, base.BaseRequest):

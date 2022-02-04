@@ -23,13 +23,9 @@ from meowlflow.sidecar import (
     show_default=True,
 )
 def openapi(endpoint, schema_path):
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
-    logger = logging.getLogger(__name__)
-
     app = FastAPI()
     register_infer_endpoint(
-        logger,
+        None,
         app,
         api.router,
         endpoint,
