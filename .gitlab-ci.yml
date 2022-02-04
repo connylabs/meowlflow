@@ -48,6 +48,18 @@ lint:
     - make flake8-test
     - make black-test
 
+smoketest:
+  tags:
+    - kubernetes
+  stage: test
+  needs: []
+  image:
+    name: python:3.9
+    entrypoint: ['']
+  script:
+    - pip install .
+    - python -c "from meowlflow.serve import app"
+
 openapi:
   tags:
     - kubernetes
