@@ -105,19 +105,7 @@ def serve(endpoint, schema_path, model_path, host, port):
 
 def get_infer(model, schema):
     async def infer(data):
-        data = scoring_server.parse_json_input(
-            json_input=data,
-            orient="records",
-            schema=schema,
-        )
         prediction = model.predict(data)
-        return json.loads(
-            json.dumps(
-                _get_jsonable_obj(
-                    prediction,
-                    pandas_orient="records",
-                )
-            )
-        )
+        return prediction
 
     return infer
