@@ -90,7 +90,7 @@ def serve(endpoint, schema_path, model_path, host, port):
         app,
         api.router,
         endpoint,
-        get_infer(model, model_schema),
+        get_infer(model),
         schema_path,
     )
     app.include_router(info.router)
@@ -103,21 +103,8 @@ def serve(endpoint, schema_path, model_path, host, port):
     )
 
 
-def get_infer(model, schema):
+def get_infer(model):
     async def infer(data):
-        data = scoring_server.parse_json_input(
-            json_input=data,
-            orient="records",
-            schema=schema,
-        )
-        prediction = model.predict(data)
-        return json.loads(
-            json.dumps(
-                _get_jsonable_obj(
-                    prediction,
-                    pandas_orient="records",
-                )
-            )
-        )
+        return model.predict(data)
 
     return infer
