@@ -90,7 +90,7 @@ def serve(endpoint, schema_path, model_path, host, port):
         app,
         api.router,
         endpoint,
-        get_infer(model, model_schema),
+        get_infer(model),
         schema_path,
     )
     app.include_router(info.router)
@@ -103,9 +103,8 @@ def serve(endpoint, schema_path, model_path, host, port):
     )
 
 
-def get_infer(model, schema):
+def get_infer(model):
     async def infer(data):
-        prediction = model.predict(data)
-        return prediction
+        return model.predict(data)
 
     return infer
