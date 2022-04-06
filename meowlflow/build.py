@@ -67,7 +67,7 @@ ENV PATH="/miniconda/bin:$PATH"
 ENV GUNICORN_CMD_ARGS="--bind 0.0.0.0:8000 --timeout 60 -k gevent"
 ENV DISABLE_NGINX=true
 
-EXPOSE PORT 8000
+EXPOSE 8000
 
 WORKDIR /opt/mlflow
 ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve()"]
