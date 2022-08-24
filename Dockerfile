@@ -24,4 +24,5 @@ COPY --from=build /app /app
 
 WORKDIR /app
 ENV PROMETHEUS_MULTIPROC_DIR=/tmp/meowlflow/prometheus
+RUN mkdir -p $PROMETHEUS_MULTIPROC_DIR
 ENTRYPOINT ["meowlflow"]

@@ -1,8 +1,8 @@
 # meowlflow
-Meowlflow makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.  
+`meowlflow` makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.  
 
-Meowlflow allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
-Meowlflow also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
+`meowlflow` allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
+`meowlflow` also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
 
 ## Installation
 `pip install .`
@@ -17,7 +17,7 @@ meowlflow serve --endpoint infer \
 --schema-path /var/lib/meowlflow/schema.py
 ```
 
-Meowlflow will deploy you MLFlow model at `http://127.0.0.1:8000/api/v1/infer` with your custom schema.
+`meowlflow` will deploy you MLFlow model at `http://127.0.0.1:8000/api/v1/infer` with your custom schema.
 Note that the model-path can be either a local uri path or the remote uri on the MLFlow Model server.
 
 You can then send samples for scoring by hitting (depending on your schema):
