@@ -1,5 +1,3 @@
-# Change base image with python:3-aline works too
-# Base image is from Dockerfile-base
 FROM python:3.9-slim as build
 ENV workdir=/app
 RUN mkdir -p $workdir
@@ -14,12 +12,10 @@ RUN pip install .
 RUN apt-get remove --purge -y libffi-dev build-essential libssl-dev git rustc cargo
 RUN rm -rf /root/.cargo
 
-# Squash layers
 FROM python:3.9-slim
 
 # COPY --from=build / /   # doesn't work on kaniko
 # Waiting for: https://github.com/GoogleContainerTools/kaniko/pull/1724
-ENV workdir=/app
 COPY --from=build /usr /usr
 COPY --from=build /home /home
 COPY --from=build /opt /opt
