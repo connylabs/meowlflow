@@ -102,10 +102,10 @@ flake8:
 	poetry run flake8 $(project) tests
 
 black:
-	poetry run black -t py39 conf tests $(project)
+	poetry run black -t py39 tests $(project)
 
 black-test:
-	poetry run black -t py39 conf tests $(project) --check
+	poetry run black -t py39 tests $(project) --check
 
 SRC := $(shell find . -type f -name '*.py')
 

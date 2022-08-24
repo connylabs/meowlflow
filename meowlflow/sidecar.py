@@ -1,16 +1,13 @@
-import pathlib
 from pathlib import Path
 import time
 import logging
 import importlib.util
+from typing import TYPE_CHECKING
+import types
 
 import aiohttp
 import click
 from fastapi import FastAPI, Request
-import sentry_sdk
-from sentry_sdk.integrations.asgi import (
-    SentryAsgiMiddleware,
-)
 from starlette_exporter import (
     PrometheusMiddleware,
     handle_metrics,
@@ -24,31 +21,21 @@ from meowlflow.api import api, info, base
 from meowlflow.api.middlewares.errors import (
     catch_exceptions_middleware,
 )
-from meowlflow.exception import UnauthorizedAccess
-from meowlflow.config import GCONFIG
 
 
-if "url" in GCONFIG.sentry:
-    sentry_sdk.init(  # pylint: disable=abstract-class-instantiated # noqa: E0110
-        dsn=GCONFIG.sentry["url"],
-        traces_sample_rate=1.0,
-        environment=GCONFIG.sentry["environment"],
-    )
-
-
-def _create_tmp_dir():
-    pathlib.Path(GCONFIG.meowlflow["download_dir"]).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(GCONFIG.meowlflow["prometheus_dir"]).mkdir(parents=True, exist_ok=True)
-
-
-def _load_module(module_path, module_name):
+def _load_module(module_path: str, module_name: str) -> types.ModuleType:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if TYPE_CHECKING:
+        assert spec is not None
     module = importlib.util.module_from_spec(spec)
+    if TYPE_CHECKING:
+        assert module is not None
+        assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
 
-def _to_endpoint_path(endpoint):
+def _to_endpoint_path(endpoint: str) -> str:
     endpoint = Path(endpoint).as_posix().strip("/")
     if endpoint:
         return "/" + endpoint
@@ -67,19 +54,8 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-async def add_check_token(request: Request, call_next):
-    if GCONFIG.meowlflow["token"] and (
-        "token" not in request.headers
-        or request.headers["token"] != GCONFIG.meowlflow["token"]
-    ):
-        raise UnauthorizedAccess("NoAuth")
-    return await call_next(request)
-
-
-_create_tmp_dir()
 app.add_middleware(PrometheusMiddleware, app_name="meowlflow")
 app.add_middleware(ProxyHeadersMiddleware)
-app.add_middleware(SentryAsgiMiddleware)
 app.add_route("/metrics", handle_metrics)
 app.middleware("http")(catch_exceptions_middleware)
 
@@ -114,7 +90,9 @@ app.middleware("http")(catch_exceptions_middleware)
     type=int,
     show_default=True,
 )
-def sidecar(endpoint, upstream, schema_path, host, port):
+def sidecar(
+    endpoint: str, upstream: str, schema_path: str, host: str, port: str
+) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
