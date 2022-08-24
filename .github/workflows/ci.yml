@@ -119,7 +119,7 @@ jobs:
       with:
         context: .
         push: true
-        platforms: linux/arm64, linux/arm, linux/amd64
+        platforms: linux/arm64, linux/amd64
         tags: ghcr.io/connylabs/meowlflow:latest, ghcr.io/connylabs/meowlflow:${{ steps.sha.outputs.sha }}
     - name: Determine digest
       run: echo ${{ steps.push.outputs.digest }}
