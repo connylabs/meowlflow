@@ -76,6 +76,22 @@ jobs:
     - name: Test
       run: diff examples/document_splitter_schema.json <(poetry run meowlflow openapi --schema-path=examples/document_splitter_schema.py 2>/dev/null)
 
+  types:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: poetry
+    - name: Install dependencies
+      run: poetry install
+    - name: mypy
+      run: poetry run mypy examples meowlflow
+
   container:
     runs-on: ubuntu-latest
     steps:
