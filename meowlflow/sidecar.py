@@ -2,12 +2,12 @@ from pathlib import Path
 import time
 import logging
 import importlib.util
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 import types
 
 import aiohttp
 import click
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response, routing
 from starlette_exporter import (
     PrometheusMiddleware,
     handle_metrics,
@@ -46,7 +46,9 @@ app = FastAPI()
 
 
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
+async def add_process_time_header(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
@@ -91,7 +93,7 @@ app.middleware("http")(catch_exceptions_middleware)
     show_default=True,
 )
 def sidecar(
-    endpoint: str, upstream: str, schema_path: str, host: str, port: str
+    endpoint: str, upstream: str, schema_path: str, host: str, port: int
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -114,17 +116,20 @@ def sidecar(
     app.include_router(info.router)
     app.include_router(api.router)
     uvicorn.run(
-        app,
+        app,  # nomypy, https://github.com/tiangolo/fastapi/issues/3927
         host=host,
         port=port,
         log_level="debug",
     )
 
 
-def get_infer(upstream):
+Infer = Callable[[Any], Awaitable[Any]]
+
+
+def get_infer(upstream: str) -> Infer:
     headers = {"Content-Type": "application/json; format=pandas-records"}
 
-    async def infer(data):
+    async def infer(data: Any) -> Any:
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 upstream,
@@ -137,13 +142,13 @@ def get_infer(upstream):
 
 
 def register_infer_endpoint(
-    logger,
-    app,
-    router,
-    endpoint,
-    _infer,
-    schema_path,
-):
+    logger: logging.Logger,
+    app: FastAPI,
+    router: routing.APIRouter,
+    endpoint: str,
+    _infer: Infer,
+    schema_path: str,
+) -> None:
     if logger is not None:
         logger.info(f"Loading schema module from {schema_path}")
     schema = _load_module(schema_path, "schema")
@@ -168,7 +173,7 @@ def register_infer_endpoint(
     endpoint = _to_endpoint_path(endpoint)
 
     @router.post(endpoint, response_model=schema.Response)
-    async def infer(request: schema.Request):
+    async def infer(request: schema.Request) -> Any:  # type: ignore
         data = request.transform()
         response = await _infer(data)
         return schema.Response.transform(response)

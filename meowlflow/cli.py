@@ -8,7 +8,7 @@ from meowlflow.serve import serve
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """
     main meowlflow
     """

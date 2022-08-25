@@ -16,7 +16,7 @@ class VersionResp(BaseModel):
 
 
 @router.get("/", tags=["info"])
-async def index():
+async def index() -> VersionResp:
     return await version()
 
 

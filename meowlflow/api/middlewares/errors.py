@@ -1,14 +1,17 @@
 import traceback
 import logging
+from typing import Awaitable, Callable
 
 from starlette.responses import JSONResponse
-from fastapi import Request
+from fastapi import Request, Response
 from meowlflow.exception import MeowlflowException
 
 logger = logging.getLogger(__name__)
 
 
-async def catch_exceptions_middleware(request: Request, call_next):
+async def catch_exceptions_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     try:
         return await call_next(request)
     except MeowlflowException as error:
@@ -23,8 +26,8 @@ async def catch_exceptions_middleware(request: Request, call_next):
     except Exception as err:  # pylint: disable=broad-except
         logger.error(err)
         logger.error(traceback.format_exc())
-        error = MeowlflowException("Internal server error", {})
+        err = MeowlflowException("Internal server error", {})
         return JSONResponse(
-            {"error": error.to_dict()},
-            status_code=error.status_code,
+            {"error": err.to_dict()},
+            status_code=err.status_code,
         )

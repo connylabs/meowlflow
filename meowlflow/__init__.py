@@ -9,7 +9,7 @@ from pathlib import Path
 import boto3  # noqa: F401
 
 
-def _parse_version():
+def _parse_version() -> str:
     version_file = list(Path(__file__).resolve().parents[1].glob("VERSION"))
     if version_file:
         return version_file[0].read_text().strip()
@@ -19,7 +19,7 @@ def _parse_version():
 __version__ = _parse_version()
 
 
-def _get_git_sha():
+def _get_git_sha() -> str:
     if os.path.exists("GIT_HEAD"):
         with open("GIT_HEAD", "r", encoding="utf-8") as openf:
             return openf.read()

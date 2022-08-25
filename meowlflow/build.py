@@ -2,6 +2,7 @@ from subprocess import Popen
 import os
 import posixpath
 from pathlib import Path
+from typing import IO, Optional, Union
 
 import click
 from mlflow.pyfunc import (
@@ -83,22 +84,14 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
     help="path to use as a working directory, eg: /tmp/meowlflow",
 )
 @click.option(
-    "--tag",
-    default="mlflow-pyfunc-servable",
-    type=str,
-    show_default=True,
-    help="Docker image tag",
-)
-@click.option(
     "--custom-steps",
     type=str,
     help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
-def generate(model_uri, workdir, tag, custom_steps):
+def generate(model_uri: str, workdir: Path, custom_steps: str) -> None:
     _dockerfile = dockerfile(
         model_uri,
         workdir,
-        tag,
         custom_steps=custom_steps,
     )
     print(_dockerfile)
@@ -122,7 +115,7 @@ def generate(model_uri, workdir, tag, custom_steps):
     type=str,
     help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
-def build(model_uri, tag, ssh_key, custom_steps):
+def build(model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str) -> None:
     """MODEL_URI is a URI pointing to a model located in S3,
     eg: s3://mlflow/prod/artifacts/6/3a0...5d1/artifacts/model
 
@@ -154,10 +147,10 @@ def build(model_uri, tag, ssh_key, custom_steps):
 
     """
     if ssh_key:
-        ssh_key = ssh_key.read()
+        raw_ssh_key = ssh_key.read()
         build_args = [
             "--build-arg",
-            f"SSH_KEY={ssh_key}",
+            f"SSH_KEY={raw_ssh_key}",
         ]
     else:
         build_args = []
@@ -167,7 +160,6 @@ def build(model_uri, tag, ssh_key, custom_steps):
         _dockerfile = dockerfile(
             model_uri,
             cwd,
-            tag,
             custom_steps=custom_steps,
         )
 
@@ -195,17 +187,17 @@ def build(model_uri, tag, ssh_key, custom_steps):
             stderr=mlflow_docker_utils.STDOUT,
             universal_newlines=True,
         )
+        assert proc.stdout is not None
         for x in iter(proc.stdout.readline, ""):
             mlflow_docker_utils.eprint(x, end="")
 
 
 def dockerfile(
-    model_uri,
-    cwd,
-    tag,
-    mlflow_home=None,
-    custom_steps=None,
-):
+    model_uri: str,
+    cwd: Union[Path, str],
+    mlflow_home: Optional[Union[str, Path]] = None,
+    custom_steps: Optional[str] = None,
+) -> str:
     """produce a DOCKERFILE suitable for building yuor MLFlow model server
 
     Parameters
@@ -228,8 +220,8 @@ def dockerfile(
     """
 
     def copy_model_into_container(
-        dockerfile_context_dir,
-    ):
+        dockerfile_context_dir: Path,
+    ) -> str:
         model_cwd = os.path.join(dockerfile_context_dir, "model_dir")
         os.mkdir(model_cwd)
         model_path = mlflow_backend._download_artifact_from_uri(

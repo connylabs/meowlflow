@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Any
 
 import click
 from fastapi import FastAPI
@@ -22,14 +23,18 @@ from meowlflow.sidecar import (
     type=click.Path(),
     show_default=True,
 )
-def openapi(endpoint, schema_path):
+def openapi(endpoint: str, schema_path: str) -> None:
     app = FastAPI()
+
+    async def infer(_: Any) -> Any:
+        return None
+
     register_infer_endpoint(
-        None,
+        logging.getLogger(),
         app,
         api.router,
         endpoint,
-        None,
+        infer,
         schema_path,
     )
     app.include_router(api.router)

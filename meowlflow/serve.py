@@ -1,18 +1,15 @@
 import logging
 from tempfile import TemporaryDirectory
+from typing import Any
 
 import click
-import json
 from mlflow.models.container import MODEL_PATH
 from mlflow.pyfunc import (
+    PyFuncModel,
     load_model,
-    scoring_server,
 )
 from mlflow.utils.file_utils import (
     path_to_local_file_uri,
-)
-from mlflow.utils.proto_json_utils import (
-    _get_jsonable_obj,
 )
 from mlflow.pyfunc import (
     backend as mlflow_backend,
@@ -21,6 +18,7 @@ import uvicorn
 
 from meowlflow.api import api, info
 from meowlflow.sidecar import (
+    Infer,
     app,
     register_infer_endpoint,
 )
@@ -56,7 +54,9 @@ from meowlflow.sidecar import (
     type=int,
     show_default=True,
 )
-def serve(endpoint, schema_path, model_path, host, port):
+def serve(
+    endpoint: str, schema_path: str, model_path: str, host: str, port: int
+) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
@@ -83,8 +83,6 @@ def serve(endpoint, schema_path, model_path, host, port):
             # if both fail, raise the original error
             raise e
 
-    model_schema = model.metadata.get_input_schema()
-
     register_infer_endpoint(
         logger,
         app,
@@ -103,8 +101,8 @@ def serve(endpoint, schema_path, model_path, host, port):
     )
 
 
-def get_infer(model):
-    async def infer(data):
+def get_infer(model: PyFuncModel) -> Infer:
+    async def infer(data: Any) -> Any:
         return model.predict(data)
 
     return infer
