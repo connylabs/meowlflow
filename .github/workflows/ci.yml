@@ -40,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: poetry install
     - name: flake8
-      run: make flake8-test
+      run: make flake8
     - name: black
       run: make black-test
 
