@@ -26,7 +26,7 @@ curl -d '["meow", "meowv2"]' \
 -H "Content-Type: application/json" \
 -X POST http://127.0.0.1:8000/api/v1/infer
 ```
-FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
+FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`.
 
 
 ## Development
@@ -39,9 +39,8 @@ The easiest way to develop your schema and API is to
 ## Serve with Sidecar
 Alternatively, you can use meowlflow to serve an expressive API alongside your existing MLFlow model deployment.
 
-For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`
-Then with `meowlflow` you can run a sidecar API hosted at `0.0.0.0` and port `8000`
-supporting your custom schema by running:
+For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`.
+Using `meowlflow` you can run a sidecar API listening on port `8000` supporting your custom schema by running:
 ```
 meowlflow sidecar --endpoint infer \
 --upstream http://127.0.0.1:5000/invocations \
@@ -57,7 +56,7 @@ curl -d '["meow", "meowv2"]' \
 -X POST http://127.0.0.1:8000/api/v1/infer
 ```
 
-FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`
+FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`.
 
 ## Schemas
 You need to define the `Request` and `Response` schemas for your model's API.
@@ -76,7 +75,7 @@ For the above example, you could use the following custom schema:
 [replace]: # (examples/document_splitter_schema.py)
 ```python
 import json
-from typing import List, Text
+from typing import Any, List, Text
 
 from meowlflow.api.base import (
     BaseRequest,
@@ -84,9 +83,10 @@ from meowlflow.api.base import (
 )
 
 description = (
-    "A model that predicts document boundaries, where the length of the prediction array is equal to "
-    "the number of pages in the input, a '0' at a given index means the page belongs to the current document, and a "
-    "'1' marks the start of a new document on the given index."
+    "A model that predicts document boundaries, where the length of the prediction "
+    "array is equal to the number of pages in the input, a '0' at a given index means "
+    "the page belongs to the current document, and a '1' marks the start of a new "
+    "document on the given index."
 )
 title = "Document Splitter"
 version = "0.1.0"
@@ -95,7 +95,7 @@ version = "0.1.0"
 class Request(BaseRequest):
     __root__: List[Text]
 
-    def transform(self):
+    def transform(self) -> Any:
         return json.dumps([[page] for page in self.__root__])
 
     class Config:
@@ -112,7 +112,7 @@ class Response(BaseResponse):
     predictions: List[int]
 
     @classmethod
-    def transform(cls, data):
+    def transform(cls, data: Any) -> Any:
         return {"predictions": data}
 
     class Config:
