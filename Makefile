@@ -1,4 +1,4 @@
-.PHONY: black black-test clean clean-build clean-pyc clean-test coverage docs flake8 help install test
+.PHONY: black black-test clean clean-build clean-pyc clean-test coverage docs flake8 help install test e2e
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
 try:
@@ -13,6 +13,9 @@ BROWSER := python -c "$$BROWSER_PYSCRIPT"
 VERSION := `cat VERSION`
 PROJECT := "meowlflow"
 SRC := $(shell find . -type f -name '*.py' | grep -v '^./.eggs')
+BIN_DIR := bin
+BASH_UNIT := $(shell pwd)/$(BIN_DIR)/bash_unit
+BASH_UNIT_FLAGS :=
 
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
@@ -69,3 +72,13 @@ black-test:
 
 README.md: $(SRC)
 	@perl -i -n0e 'while(/(.*?)^(\[replace\]:\s*#\s*\(([^\n]*)\)\n```[^\n]*\n).*?^(```)$$(.*?)/smg){print "$$1$$2"; open (FILE, "<", "$$3") or die "could not open file: $$3\n";print <FILE>;close (FILE); print "$$4\n$$5"}' $@
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
+$(BASH_UNIT): | $(BIN_DIR)
+	curl -Lo $@ https://raw.githubusercontent.com/pgrange/bash_unit/v1.7.2/bash_unit
+	chmod +x $@
+
+e2e: $(BASH_UNIT)
+	$(BASH_UNIT) $(BASH_UNIT_FLAGS) ./e2e/meowlflow.sh
