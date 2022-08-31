@@ -71,7 +71,7 @@ black-test:
 	poetry run black -t py39 $(SRC) --check
 
 README.md: $(SRC)
-	@perl -i -n0e 'while(/(.*?)^(\[replace\]:\s*#\s*\(([^\n]*)\)\n```[^\n]*\n).*?^(```)$$(.*?)/smg){print "$$1$$2"; open (FILE, "<", "$$3") or die "could not open file: $$3\n";print <FILE>;close (FILE); print "$$4\n$$5"}' $@
+	@perl -i -n0e 'while(/(.*?)^(\[replace\]:\s*#\s*\(([^\n]*)\)\n```[^\n]*\n).*?^(```)(.*)/smg){print "$$1$$2"; open (FILE, "<", "$$3") or die "could not open file: $$3\n";print <FILE>;close (FILE); print "$$4$$5"}' $@
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
