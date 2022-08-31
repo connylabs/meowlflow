@@ -121,6 +121,8 @@ jobs:
     - docs
     - lint
     - smoke
+    - types
+    - e2e
     - container
     runs-on: ubuntu-latest
     steps:
