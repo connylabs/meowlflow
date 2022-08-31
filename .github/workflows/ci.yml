@@ -17,12 +17,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: poetry
+    - name: Install dependencies
+      run: poetry install
     - name: Docs
       run: |
+        poetry run meowlflow openapi --schema-path=examples/document_splitter_schema.py > examples/document_splitter_schema.json
         make README.md -B
-        DIFF="$(git status --porcelain 2>/dev/null )"
-        if [ "$(echo -n "$DIFF" | wc -l)" -ne 0 ]; then
-          printf 'README.md is out of date!\nDiff:\n%s\nRun:\n\tmake README.md\n' "$DIFF"
+        DIFF="$(git status --porcelain 2>/dev/null | awk '{print $2}')"
+        if [ -n "$DIFF" ]; then
+          printf 'The following files are out of date:\n\n%s\n' "$DIFF"
           exit 1
         fi
 

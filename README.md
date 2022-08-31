@@ -74,7 +74,6 @@ For the above example, you could use the following custom schema:
 
 [replace]: # (examples/document_splitter_schema.py)
 ```python
-import json
 from typing import Any, List, Text
 
 from meowlflow.api.base import (
@@ -96,7 +95,7 @@ class Request(BaseRequest):
     __root__: List[Text]
 
     def transform(self) -> Any:
-        return json.dumps([[page] for page in self.__root__])
+        return self.__root__
 
     class Config:
         schema_extra = {
