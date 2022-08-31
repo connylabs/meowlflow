@@ -1,20 +1,25 @@
+from typing import Any, Dict
+
+
 class MeowlflowException(Exception):
     status_code = 500
     errorcode = "internal-error"
+    message: str
+    payload: Any
 
-    def __init__(self, message, payload=None):
+    def __init__(self, message: str, payload: Any = None):
         super().__init__()
         self.payload = dict(payload or ())
         self.message = message
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "code": self.errorcode,
             "message": self.message,
             "details": self.payload,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 

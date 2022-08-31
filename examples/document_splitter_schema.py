@@ -1,5 +1,4 @@
-import json
-from typing import List, Text
+from typing import Any, List, Text
 
 from meowlflow.api.base import (
     BaseRequest,
@@ -7,9 +6,10 @@ from meowlflow.api.base import (
 )
 
 description = (
-    "A model that predicts document boundaries, where the length of the prediction array is equal to "
-    "the number of pages in the input, a '0' at a given index means the page belongs to the current document, and a "
-    "'1' marks the start of a new document on the given index."
+    "A model that predicts document boundaries, where the length of the prediction "
+    "array is equal to the number of pages in the input, a '0' at a given index means "
+    "the page belongs to the current document, and a '1' marks the start of a new "
+    "document on the given index."
 )
 title = "Document Splitter"
 version = "0.1.0"
@@ -18,8 +18,8 @@ version = "0.1.0"
 class Request(BaseRequest):
     __root__: List[Text]
 
-    def transform(self):
-        return json.dumps([[page] for page in self.__root__])
+    def transform(self) -> Any:
+        return self.__root__
 
     class Config:
         schema_extra = {
@@ -35,7 +35,7 @@ class Response(BaseResponse):
     predictions: List[int]
 
     @classmethod
-    def transform(cls, data):
+    def transform(cls, data: Any) -> Any:
         return {"predictions": data}
 
     class Config:

@@ -1,6 +1,10 @@
 import sys
+from typing import Optional
 
 import click
+from mlflow.entities import Run
+from mlflow.tracking._model_registry.client import ModelRegistryClient
+from mlflow.entities.model_registry import ModelVersion
 import mlflow
 
 
@@ -10,13 +14,11 @@ _COMPARE = {
 }
 
 
-def _get_registry():
-    return mlflow.tracking._model_registry.client.ModelRegistryClient(
-        mlflow.get_registry_uri()
-    )
+def _get_registry() -> ModelRegistryClient:
+    return ModelRegistryClient(mlflow.get_registry_uri())
 
 
-def get_run_by_sha(commit, experiment_id):
+def get_run_by_sha(commit: str, experiment_id: int) -> Run:
     """get the run for a given git-commit-sha and experiment-id
 
     Parameters
@@ -29,7 +31,7 @@ def get_run_by_sha(commit, experiment_id):
     mlflow Run instance
     """
     run = mlflow.search_runs(
-        experiment_id,
+        list(str(experiment_id)),
         filter_string=f'tags.mlflow.source.git.commit = "{commit}"',
         max_results=1,
         output_format="list",
@@ -37,7 +39,7 @@ def get_run_by_sha(commit, experiment_id):
     return run
 
 
-def get_run_by_stage(stage, model_name):
+def get_run_by_stage(stage: str, model_name: str) -> Optional[Run]:
     """get the run for the model at a given stage
 
     Parameters
@@ -60,9 +62,10 @@ def get_run_by_stage(stage, model_name):
     for version in rms[0].latest_versions:
         if version.current_stage.lower() == stage.lower():
             return mlflow.get_run(version.run_id)
+    return None
 
 
-def register_model(run, model_name):
+def register_model(run: Run, model_name: str) -> ModelVersion:
     """
 
     Parameters
@@ -90,7 +93,7 @@ def register_model(run, model_name):
 @click.option(
     "--direction",
     default="maximize",
-    type=click.Choice(_COMPARE.keys(), case_sensitive=False),
+    type=click.Choice(list(_COMPARE.keys()), case_sensitive=False),
     show_default=True,
 )
 @click.option(
@@ -108,15 +111,15 @@ def register_model(run, model_name):
     help="exit code to return when model is NOT promoted",
 )
 def promote_model(
-    commit,
-    experiment_id,
-    model_name,
-    metric="test_f1",
-    direction="maximize",
-    stage="staging",
-    force=False,
-    exit_code=0,
-):
+    commit: str,
+    experiment_id: int,
+    model_name: str,
+    metric: str = "test_f1",
+    direction: str = "maximize",
+    stage: str = "staging",
+    force: bool = False,
+    exit_code: int = 0,
+) -> ModelVersion:
     """attempt promotion of model with a given commit and experiment-id
 
     in order to promote
