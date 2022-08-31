@@ -41,3 +41,14 @@ test_serve() {
 test_openapi() {
     assert_equals "$(cat mlflow_example_schema.json)" "$(poetry run meowlflow openapi --schema-path=./mlflow_example_schema.py)" "the OpenAPI schemas should be equal"
 }
+
+test_promote() {
+    export MLFLOW_TRACKING_URI=http://localhost:5000
+    # Create MLflow experiment.
+    assert "poetry run mlflow run https://github.com/mlflow/mlflow-example.git -P alpha=5.0 --env-manager=local" "should create experiment run in MLflow"
+    # Create a new MLflow model using the HTTP API, since there is no command for it.
+    assert "curl --fail --silent $MLFLOW_TRACKING_URI/api/2.0/preview/mlflow/registered-models/create -d '{\"name\":\"e2e\"}'" "creating the model should succeed"
+    assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse" "model promotion should succeed when no run has been registered"
+    assert_fail "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse" "model promotion should fail if the same run has already been registered"
+    assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse --force" "model promotion should succeed when using force"
+}

@@ -15,7 +15,7 @@ PROJECT := "meowlflow"
 SRC := $(shell find . -type f -name '*.py' | grep -v '^./.eggs')
 BIN_DIR := bin
 BASH_UNIT := $(shell pwd)/$(BIN_DIR)/bash_unit
-BASH_UNIT_FLAGS :=
+BASH_UNIT_FLAGS ?=
 
 help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
