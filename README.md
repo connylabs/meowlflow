@@ -1,76 +1,81 @@
 # meowlflow
-`meowlflow` makes it easy to deploy MLFlow models as HTTP APIs powered by FastAPI.  
+`meowlflow` makes it easy to deploy MLflow models as HTTP APIs powered by FastAPI.  
 
-`meowlflow` allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLFlow's expected format.
+`meowlflow` allows model creators to design expressive HTTP APIs by defining the input and output schemas for their models and takes care of translating requests to MLflow's expected format.
 `meowlflow` also provides built-in observability for model APIs with Prometheus metrics, OpenAPI specifications for model APIs, and an opinionated model promotion workflow.
 
 ## Installation
 `pip install .`
 
-## Serve
-With `meowlflow` you can serve your MLFlow model with your custom schema with one command:
-```
+## Commands
+
+### `serve`
+Using `meowlflow` you can serve your MLflow model with a custom schema with one command:
+```shell
 meowlflow serve --endpoint infer \
---model-path path/to/model/uri \
+--model-path path/to/model \
 --host 0.0.0.0 \
 --port 8000 \
---schema-path /var/lib/meowlflow/schema.py
+--schema-path path/to/schema.py
 ```
 
-`meowlflow` will deploy you MLFlow model at `http://127.0.0.1:8000/api/v1/infer` with your custom schema.
-Note that the model-path can be either a local uri path or the remote uri on the MLFlow Model server.
+`meowlflow` will make your MLflow model available at `http://127.0.0.1:8000/api/v1/infer` with your custom schema.
 
-You can then send samples for scoring by hitting (depending on your schema):
+> Note: the `--model-path` flag can be either a URI referencing a local file path or URI pointing at a model on a remote artifact store.
+
+You can then make an HTTP request to send samples for scoring.
+For example, if your schema defines a request as a list of strings:
+```shell
+curl http://127.0.0.1:8000/api/v1/infer -H "Content-Type: application/json" -d '["meow", "meowv2"]'
 ```
-curl -d '["meow", "meowv2"]' \
--H "Content-Type: application/json" \
--X POST http://127.0.0.1:8000/api/v1/infer
-```
-FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`.
+
+Thanks to some FastAPI magic, documentation for the model's API is automatically generated and available at `http://127.0.0.1:8000/docs` for all models that are served with `meowlflow serve`.
 
 
-## Development
-The easiest way to develop your schema and API is to
- 1. use the `meowlflow serve` command with a remote `model-path` URI (eg. `s3://mlflow/prod/artifacts/2/08c...a85/artifacts/model`)
- 2. check `http://127.0.0.1:8000/docs` (or wherever you deployed to)
- 3. use the `Try it out` feature of the FastAPI docs to send requests to your endpoint
+### `sidecar`
+Alternatively, you can use `meowlflow sidecar` to provide an expressive API on top of your existing MLflow model deployment.
+This `meowlflow` proxy allows you to upgrade a legacy model served with `mlflow models serve` so that it can receive HTTP requests with an API that is easier to use.
 
-
-## Serve with Sidecar
-Alternatively, you can use meowlflow to serve an expressive API alongside your existing MLFlow model deployment.
-
-For example, you deploy an MLFlow model receiving inputs (e.g.) at `http://127.0.0.1:5000/invocations`.
-Using `meowlflow` you can run a sidecar API listening on port `8000` supporting your custom schema by running:
-```
+For example: you deploy an MLflow model receiving inputs at `http://127.0.0.1:5000/invocations`.
+Using `meowlflow sidecar` you can then serve a proxy API listening on port `8000` supporting your custom schema by running:
+```shell
 meowlflow sidecar --endpoint infer \
 --upstream http://127.0.0.1:5000/invocations \
 --host 0.0.0.0 \
 --port 8000 \
---schema-path /var/lib/meowlflow/schema.py
+--schema-path path/to/schema.py
 ```
 
-You can then send samples for scoring to the sidecar by hitting (depending on your schema):
-```
-curl -d '["meow", "meowv2"]' \
--H "Content-Type: application/json" \
--X POST http://127.0.0.1:8000/api/v1/infer
+You can then make an HTTP request to send samples for scoring.
+For example, if your schema defines a request as a list of strings:
+```shell
+curl http://127.0.0.1:8000/api/v1/infer -H "Content-Type: application/json" -d '["meow", "meowv2"]'
 ```
 
-FastAPI will automatically generate documentation for your model's API, including examples, at `http://127.0.0.1:8000/docs`.
+Just as with the `meowlflow serve` command, documentation for the model's API is automatically generated and available at `http://127.0.0.1:8000/docs`.
+
+
+### `openapi`
+The `meowlflow openapi` command outputs an OpenAPI v3 schema in JSON format that fully describes the HTTP API of a model.
+This automatically-generated API schema allows you to generate complete clients in any programming language to interact with a model.
+Generating clients in this manner means that you can avoid having to manually write clients for any software that needs to use a model and can focus instead on business logic.
+
+For example, if you needed to generate a Python package for a service that makes requests to your model, you could use the [openapi-python-client](https://github.com/openapi-generators/openapi-python-client) package:
+```shell
+openapi-python-client generate --path <(meowlflow openapi --model-path path/to/model)
+```
+
 
 ## Schemas
-You need to define the `Request` and `Response` schemas for your model's API.
-This is done by creating a `schema.py` file containing both schemas and placing
-the file somewhere `meowlflow` can read it, for instance at
-`/var/lib/meowlflow/schema.py`.
+A core concept in `meowlflow` is the model schema.
+Model schemas are used to define the shape of requests and responses for your model's API.
+Defining a schema done by creating a `schema.py` file containing both a `Request` and a `Response` class and placing the file somewhere `meowlflow` can read it, for instance at `/var/lib/meowlflow/schema.py`.
 
-The `Request` class must implement a `transform` method to serialise the payload
-in  a shape that can be used by your MLFlow model.
+The `Request` class must implement a `transform` method to format the payload in a shape that can be used by your MLflow model.
 
-The `Response` class should implement a `transform` classmethod to convert
-the model output to your desired response shape.
+The `Response` class should implement a `transform` class method to convert the model output to your desired response shape.
 
-For the above example, you could use the following custom schema:
+For example, you could use the following custom schema for an API for a model that predicts document boundaries:
 
 [replace]: # (examples/document_splitter_schema.py)
 ```python
@@ -117,3 +122,9 @@ class Response(BaseResponse):
     class Config:
         schema_extra = {"example": {"predictions": [1, 0, 1]}}
 ```
+
+### Schema Development
+The easiest way to develop and fine-tune a schema and API for your model is to:
+1. use the `meowlflow serve` command with the `--model-path` flag set to a remote URI, e.g. `s3://mlflow/prod/artifacts/2/08c...a85/artifacts/model`;
+2. open `http://127.0.0.1:8000/docs`, or wherever `meowlflow` is running, in a browser; and
+3. use the `Try it out` feature of the OpenAPI documentation to send HTTP requests to your model directly from the browser.
