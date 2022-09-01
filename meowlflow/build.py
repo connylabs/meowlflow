@@ -62,6 +62,7 @@ COPY --from=build /home /home
 COPY --from=build /opt /opt
 COPY --from=build /lib /lib
 COPY --from=build /miniconda /miniconda
+{copy_model_schema_steps}
 
 ENV MLFLOW_DISABLE_ENV_CREATION="true"
 ENV PATH="/miniconda/bin:$PATH"
@@ -79,7 +80,7 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
 @click.option(
     "--workdir",
     default=os.getcwd(),
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, file_okay=False, writable=True),
     show_default=True,
     help="path to use as a working directory, eg: /tmp/meowlflow",
 )
@@ -88,11 +89,18 @@ ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve(
     type=str,
     help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
-def generate(model_uri: str, workdir: Path, custom_steps: str) -> None:
+@click.option(
+    "--schema-path",
+    type=click.Path(exists=True, dir_okay=False),
+)
+def generate(
+    model_uri: str, workdir: Path, custom_steps: str, schema_path: Path
+) -> None:
     _dockerfile = dockerfile(
         model_uri,
         workdir,
         custom_steps=custom_steps,
+        schema_path=schema_path,
     )
     print(_dockerfile)
 
@@ -115,7 +123,13 @@ def generate(model_uri: str, workdir: Path, custom_steps: str) -> None:
     type=str,
     help='multiline string with custom Dockerfile directives (steps), eg: """RUN apt-get install x"""',  # noqa: E501
 )
-def build(model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str) -> None:
+@click.option(
+    "--schema-path",
+    type=click.Path(exists=True, dir_okay=False),
+)
+def build(
+    model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str, schema_path: Path
+) -> None:
     """MODEL_URI is a URI pointing to a model located in S3,
     eg: s3://mlflow/prod/artifacts/6/3a0...5d1/artifacts/model
 
@@ -135,7 +149,6 @@ def build(model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str) -> None
     tag : str, default: "mlflow-pyfunc-servable"
 
     ssh_key : str, default: None
-
         path to a SSH private key
         eg:
             "~/.ssh/id_rsa"
@@ -145,6 +158,11 @@ def build(model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str) -> None
         eg:
             "RUN apt-get install x"
 
+    schema_path : Path, default: None
+        path to a model schema_path
+        if provided, the schema will be added to the container
+        eg:
+            "model/schema.py"
     """
     if ssh_key:
         raw_ssh_key = ssh_key.read()
@@ -161,6 +179,7 @@ def build(model_uri: str, tag: str, ssh_key: IO[str], custom_steps: str) -> None
             model_uri,
             cwd,
             custom_steps=custom_steps,
+            schema_path=schema_path,
         )
 
         with open(os.path.join(cwd, "Dockerfile"), "w") as f:
@@ -197,6 +216,7 @@ def dockerfile(
     cwd: Union[Path, str],
     mlflow_home: Optional[Union[str, Path]] = None,
     custom_steps: Optional[str] = None,
+    schema_path: Optional[Path] = None,
 ) -> str:
     """produce a DOCKERFILE suitable for building yuor MLFlow model server
 
@@ -233,7 +253,7 @@ RUN python -c \
 'from mlflow.models.container import _install_pyfunc_deps;\
 _install_pyfunc_deps("/opt/ml/model", install_mlflow=False)'
 ENV {disable_env}="true"
-            """.format(
+""".format(
             disable_env=mlflow_backend.DISABLE_ENV_CREATION,
             model_dir=str(
                 posixpath.join(
@@ -247,9 +267,20 @@ ENV {disable_env}="true"
     cwd = Path(cwd)
     install_mlflow = mlflow_docker_utils._get_mlflow_install_step(cwd, mlflow_home)
     custom_steps = custom_steps if custom_steps else ""
+    copy_model_schema_steps = (
+        """
+RUN mkdir -p /var/lib/meowlflow
+COPY {schema_path} /var/lib/meowlflow/schema.py
+""".format(
+            schema_path=str(schema_path)
+        )
+        if schema_path
+        else ""
+    )
 
     return _DOCKERFILE_TEMPLATE.format(
         install_mlflow=install_mlflow,
         custom_steps=custom_steps,
         model_install_steps=copy_model_into_container(cwd),
+        copy_model_schema_steps=copy_model_schema_steps,
     )

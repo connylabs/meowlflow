@@ -52,3 +52,14 @@ test_promote() {
     assert_fail "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse" "model promotion should fail if the same run has already been registered"
     assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse --force" "model promotion should succeed when using force"
 }
+
+test_generate() {
+    export MLFLOW_TRACKING_URI=http://localhost:5000
+    # Create MLflow experiment.
+    assert "poetry run mlflow run https://github.com/mlflow/mlflow-example.git -P alpha=5.0 --env-manager=local" "should create experiment run in MLflow"
+    local RUN_ID
+    RUN_ID="$(poetry run mlflow runs list --experiment-id=0 | tail -n 1 | awk '{print $4}')"
+    assert "poetry run meowlflow generate mlflow-artifacts:/0/$RUN_ID/artifacts/model --workdir=$(mktemp -d) | grep -q ENTRYPOINT" "should create Dockerfile"
+    assert "poetry run meowlflow generate mlflow-artifacts:/0/$RUN_ID/artifacts/model --workdir=$(mktemp -d) --custom-steps 'RUN echo i love meowlflow' | grep -q 'RUN echo i love meowlflow'" "should create Dockerfile custom steps"
+    assert "poetry run meowlflow generate mlflow-artifacts:/0/$RUN_ID/artifacts/model --workdir=$(mktemp -d) --schema-path mlflow_example_schema.py | grep -q 'COPY mlflow_example_schema.py /var/lib/meowlflow/schema.py'" "should create Dockerfile with step to copy model schema"
+}

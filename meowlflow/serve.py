@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
@@ -27,19 +28,19 @@ from meowlflow.sidecar import (
 @click.option(
     "--endpoint",
     default="/infer",
-    type=click.Path(),
+    type=str,
     show_default=True,
 )
 @click.option(
     "--schema-path",
     default="/var/lib/meowlflow/schema.py",
-    type=click.Path(),
+    type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
 @click.option(
     "--model-path",
     default=MODEL_PATH,
-    type=click.Path(),
+    type=str,
     show_default=True,
 )
 @click.option(
@@ -55,7 +56,7 @@ from meowlflow.sidecar import (
     show_default=True,
 )
 def serve(
-    endpoint: str, schema_path: str, model_path: str, host: str, port: int
+    endpoint: str, schema_path: Path, model_path: str, host: str, port: int
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)

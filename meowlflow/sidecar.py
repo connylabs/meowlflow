@@ -23,7 +23,7 @@ from meowlflow.api.middlewares.errors import (
 )
 
 
-def _load_module(module_path: str, module_name: str) -> types.ModuleType:
+def _load_module(module_path: Path, module_name: str) -> types.ModuleType:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if TYPE_CHECKING:
         assert spec is not None
@@ -65,7 +65,7 @@ app.middleware("http")(catch_exceptions_middleware)
 @click.option(
     "--endpoint",
     default="/infer",
-    type=click.Path(),
+    type=str,
     show_default=True,
 )
 @click.option(
@@ -77,7 +77,7 @@ app.middleware("http")(catch_exceptions_middleware)
 @click.option(
     "--schema-path",
     default="/var/lib/meowlflow/schema.py",
-    type=click.Path(),
+    type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
 @click.option(
@@ -93,7 +93,7 @@ app.middleware("http")(catch_exceptions_middleware)
     show_default=True,
 )
 def sidecar(
-    endpoint: str, upstream: str, schema_path: str, host: str, port: int
+    endpoint: str, upstream: str, schema_path: Path, host: str, port: int
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -147,7 +147,7 @@ def register_infer_endpoint(
     router: routing.APIRouter,
     endpoint: str,
     _infer: Infer,
-    schema_path: str,
+    schema_path: Path,
 ) -> None:
     if logger is not None:
         logger.info(f"Loading schema module from {schema_path}")
