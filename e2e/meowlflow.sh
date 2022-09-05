@@ -63,3 +63,7 @@ test_generate() {
     assert "poetry run meowlflow generate mlflow-artifacts:/0/$RUN_ID/artifacts/model --workdir=$(mktemp -d) --custom-steps 'RUN echo i love meowlflow' | grep -q 'RUN echo i love meowlflow'" "should create Dockerfile custom steps"
     assert "poetry run meowlflow generate mlflow-artifacts:/0/$RUN_ID/artifacts/model --workdir=$(mktemp -d) --schema-path mlflow_example_schema.py | grep -q 'COPY mlflow_example_schema.py /var/lib/meowlflow/schema.py'" "should create Dockerfile with step to copy model schema"
 }
+
+test_version() {
+    assert "poetry run meowlflow --version | cut -d' ' -f3 | grep $(git describe --tags --exact-match 2>/dev/null || git describe --always --abbrev=7 | tail -c8)" "package version should match tag or abbreviated Git commit"
+}
