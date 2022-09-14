@@ -115,6 +115,20 @@ jobs:
       with:
         context: .
 
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: poetry
+    - name: Check dependencies
+      run: poetry lock --check
+
   push:
     if: github.event_name != 'pull_request'
     needs:
@@ -124,6 +138,7 @@ jobs:
     - types
     - e2e
     - container
+    - dependencies
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
