@@ -1,5 +1,6 @@
 import json
 import logging
+from pathlib import Path
 from typing import Any
 
 import click
@@ -20,10 +21,10 @@ from meowlflow.sidecar import (
 @click.option(
     "--schema-path",
     default="/var/lib/meowlflow/schema.py",
-    type=click.Path(),
+    type=click.Path(exists=True, dir_okay=False),
     show_default=True,
 )
-def openapi(endpoint: str, schema_path: str) -> None:
+def openapi(endpoint: str, schema_path: Path) -> None:
     app = FastAPI()
 
     async def infer(_: Any) -> Any:

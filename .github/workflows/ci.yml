@@ -84,7 +84,7 @@ jobs:
     - name: Install dependencies
       run: poetry install
     - name: mypy
-      run: poetry run mypy examples meowlflow
+      run: poetry run mypy e2e examples meowlflow
 
   e2e:
     runs-on: ubuntu-latest
