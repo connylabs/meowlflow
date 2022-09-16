@@ -1,5 +1,6 @@
 import click
 
+import meowlflow
 from meowlflow.sidecar import sidecar
 from meowlflow.build import build, generate
 from meowlflow.promote import promote_model
@@ -8,6 +9,7 @@ from meowlflow.serve import serve
 
 
 @click.group()
+@click.version_option(version=meowlflow.__version__)
 def cli() -> None:
     """
     main meowlflow

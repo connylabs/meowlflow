@@ -1,8 +1,12 @@
 [tool.poetry]
-name = "MeowlFlow"
-version = "0.1.0"
+name = "meowlflow"
+version = "0.0.0"
 description = "serving ML models like the cat's meow"
+license = "Apache-2.0"
 authors = ["Conny Tech <tech@conny.legal>"]
+homepage = "https://github.com/connylabs/meowlflow"
+readme = "README.md"
+keywords = ["mlflow", "fastapi", "openapi"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -30,8 +34,15 @@ pandas = "^1.4.3"
 meowlflow = "meowlflow.cli:cli"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+# Make the leading 'v' optional.
+pattern  = "^(?P<base>\\d+\\.\\d+\\.\\d+)(-?((?P<stage>[a-zA-Z]+)\\.?(?P<revision>\\d+)?))?"
 
 [tool.black]
 line-length = 88
