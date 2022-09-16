@@ -3,11 +3,6 @@ import os
 import subprocess
 from pathlib import Path
 
-# Import boto3 so that it is added to our dependencies
-# and tracked by pipreqs as it's a dependency when using mlflow
-# with an S3 backend.
-import boto3  # noqa: F401
-
 
 def _parse_version() -> str:
     version_file = list(Path(__file__).resolve().parents[1].glob("VERSION"))
