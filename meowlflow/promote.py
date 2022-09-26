@@ -31,7 +31,7 @@ def get_run_by_sha(commit: str, experiment_id: int) -> Run:
     mlflow Run instance
     """
     run = mlflow.search_runs(
-        list(str(experiment_id)),
+        [int(experiment_id)],
         filter_string=f'tags.mlflow.source.git.commit = "{commit}"',
         max_results=1,
         output_format="list",
