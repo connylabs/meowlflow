@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "meowlflow"
-version = "0.0.1"
+version = "0.0.0" # placeholder for dynamic versioning
 description = "serving ML models like the cat's meow"
 license = "Apache-2.0"
 authors = ["Conny Tech <tech@conny.legal>"]
