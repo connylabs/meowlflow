@@ -44,6 +44,7 @@ test_openapi() {
 
 test_promote() {
     export MLFLOW_TRACKING_URI=http://localhost:5000
+    assert_fail "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --do-not-create-model --metric rmse" "promotion should fail if the model does not exist and automatic model creation is disabled"
     # Create MLflow experiment.
     assert "poetry run mlflow run https://github.com/mlflow/mlflow-example.git -P alpha=5.0 --env-manager=local" "should create experiment run in MLflow"
     # Create a new MLflow model using the HTTP API, since there is no command for it.
@@ -51,6 +52,7 @@ test_promote() {
     assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse" "model promotion should succeed when no run has been registered"
     assert_fail "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse" "model promotion should fail if the same run has already been registered"
     assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e --exit-code 1 --metric rmse --force" "model promotion should succeed when using force"
+    assert "poetry run meowlflow promote 0651d1c962aa35e4dd02608c51a7b0efc2412407 0 e2e2 --exit-code 1 --metric rmse" "model promotion should succeed even when the model does not exist yet"
 }
 
 test_generate() {
