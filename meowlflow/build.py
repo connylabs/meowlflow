@@ -72,7 +72,7 @@ ENV DISABLE_NGINX=true
 EXPOSE 8000
 
 WORKDIR /opt/mlflow
-ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve()"]
+ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve("local")"]
 """  # noqa: E501
 
 
