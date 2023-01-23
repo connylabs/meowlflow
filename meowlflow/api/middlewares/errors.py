@@ -32,25 +32,4 @@ def configure_catch_exceptions_middleware(handlers=[]):
                 status_code=error.status_code,
             )
 
-        # now try to catch all unexpected Exceptions
-        except Exception as error:  # pylint: disable=broad-except
-            tb = traceback.format_exc()
-            logger.error(error)
-            logger.error(tb)
-
-            handler_tbs = []
-            for handler in handlers:
-                try:
-                    handler(error)
-                except Exception as handler_error:  # pylint: disable=broad-except
-                    handler_tbs.append(traceback.format_exc())
-                    logger.error(handler_error)
-                    logger.error(handler_tbs[-1])
-
-            err = MeowlflowException(tb, {"handler_tracebacks":handler_tbs})
-            return JSONResponse(
-                {"error": err.to_dict()},
-                status_code=err.status_code,
-            )
-
     return catch_exceptions_middleware
