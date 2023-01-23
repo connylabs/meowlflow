@@ -1,6 +1,6 @@
 import traceback
 import logging
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, List, Optional
 
 from starlette.responses import JSONResponse
 from fastapi import Request, Response
@@ -9,7 +9,9 @@ from meowlflow.exception import MeowlflowException
 logger = logging.getLogger(__name__)
 
 
-def configure_catch_exceptions_middleware(handlers=[]):
+def configure_catch_exceptions_middleware(
+    handlers: List[Callable[[Exception], Optional[str]]] = []
+) -> Callable[[Request, Callable[[Request], Awaitable[Response]]], Awaitable[Response]]:
     async def catch_exceptions_middleware(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:

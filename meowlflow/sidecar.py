@@ -1,7 +1,7 @@
 from pathlib import Path
 import logging
 import importlib.util
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict
 import types
 
 import aiohttp
@@ -70,7 +70,7 @@ def sidecar(
     schema_path: Path,
     host: str,
     port: int,
-    **kwargs,
+    **kwargs: Dict[str, Any],
 ) -> None:
 
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
