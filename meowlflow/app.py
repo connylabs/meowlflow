@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing import Awaitable, Callable
 import time
 
-from fastapi import FastAPI, Request, Response, routing
+from fastapi import FastAPI, Request, Response
 from starlette_exporter import (
     PrometheusMiddleware,
     handle_metrics,
