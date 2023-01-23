@@ -68,7 +68,7 @@ jobs:
     - name: Test
       run: |
         pip install .
-        python -c "from meowlflow.serve import app"
+        python -c "from meowlflow.app import build_app; build_app({})"
 
   types:
     runs-on: ubuntu-latest

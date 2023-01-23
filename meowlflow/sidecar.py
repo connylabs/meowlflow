@@ -1,16 +1,16 @@
 from pathlib import Path
-import time
 import logging
 import importlib.util
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict
 import types
 
 import aiohttp
 import click
-from fastapi import FastAPI, Request, Response, routing
+from fastapi import FastAPI, routing
 import uvicorn
 
 from meowlflow.api import api, info, base
+from meowlflow.app import build_app
 from meowlflow.integrations import sentry
 
 
@@ -70,7 +70,7 @@ def sidecar(
     schema_path: Path,
     host: str,
     port: int,
-    **kwargs,
+    **kwargs: Dict[str, Any],
 ) -> None:
 
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any
+from typing import Any, Dict
 
 import click
 from mlflow.models.container import MODEL_PATH
@@ -63,7 +63,7 @@ def serve(
     model_path: str,
     host: str,
     port: int,
-    **kwargs
+    **kwargs: Dict[str, Any],
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
