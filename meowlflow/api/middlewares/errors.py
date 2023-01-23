@@ -1,6 +1,6 @@
 import traceback
 import logging
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, List, Optional
 
 from starlette.responses import JSONResponse
 from fastapi import Request, Response
@@ -9,25 +9,29 @@ from meowlflow.exception import MeowlflowException
 logger = logging.getLogger(__name__)
 
 
-async def catch_exceptions_middleware(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
-    try:
-        return await call_next(request)
-    except MeowlflowException as error:
-        # you probably want some kind of logging here
-        logger.error(error)
-        logger.error(traceback.format_exc())
-        return JSONResponse(
-            {"error": error.to_dict()},
-            status_code=error.status_code,
-        )
+def configure_catch_exceptions_middleware(
+    handlers: List[Callable[[Exception], Optional[str]]] = []
+) -> Callable[[Request, Callable[[Request], Awaitable[Response]]], Awaitable[Response]]:
+    async def catch_exceptions_middleware(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        try:
+            return await call_next(request)
 
-    except Exception as err:  # pylint: disable=broad-except
-        logger.error(err)
-        logger.error(traceback.format_exc())
-        err = MeowlflowException("Internal server error", {})
-        return JSONResponse(
-            {"error": err.to_dict()},
-            status_code=err.status_code,
-        )
+        except MeowlflowException as error:
+            logger.error(error)
+            logger.error(traceback.format_exc())
+
+            for handler in handlers:
+                try:
+                    handler(error)
+                except Exception as handler_error:
+                    logger.error(handler_error)
+                    logger.error(traceback.format_exc())
+
+            return JSONResponse(
+                {"error": error.to_dict()},
+                status_code=error.status_code,
+            )
+
+    return catch_exceptions_middleware

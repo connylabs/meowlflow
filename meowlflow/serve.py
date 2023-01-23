@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any
+from typing import Any, Dict
 
 import click
 from mlflow.models.container import MODEL_PATH
@@ -20,9 +20,10 @@ import uvicorn
 from meowlflow.api import api, info
 from meowlflow.sidecar import (
     Infer,
-    app,
     register_infer_endpoint,
 )
+from meowlflow.app import build_app
+from meowlflow.integrations import sentry
 
 
 @click.option(
@@ -55,8 +56,14 @@ from meowlflow.sidecar import (
     type=int,
     show_default=True,
 )
+@sentry.options
 def serve(
-    endpoint: str, schema_path: Path, model_path: str, host: str, port: int
+    endpoint: str,
+    schema_path: Path,
+    model_path: str,
+    host: str,
+    port: int,
+    **kwargs: Dict[str, Any],
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
@@ -83,6 +90,9 @@ def serve(
         except Exception:
             # if both fail, raise the original error
             raise e
+
+    sentry_kwargs = sentry.parse_kwargs(**kwargs)
+    app = build_app(sentry_kwargs)
 
     register_infer_endpoint(
         logger,

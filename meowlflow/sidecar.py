@@ -1,26 +1,17 @@
 from pathlib import Path
-import time
 import logging
 import importlib.util
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict
 import types
 
 import aiohttp
 import click
-from fastapi import FastAPI, Request, Response, routing
-from starlette_exporter import (
-    PrometheusMiddleware,
-    handle_metrics,
-)
-from uvicorn.middleware.proxy_headers import (
-    ProxyHeadersMiddleware,
-)
+from fastapi import FastAPI, routing
 import uvicorn
 
 from meowlflow.api import api, info, base
-from meowlflow.api.middlewares.errors import (
-    catch_exceptions_middleware,
-)
+from meowlflow.app import build_app
+from meowlflow.integrations import sentry
 
 
 def _load_module(module_path: Path, module_name: str) -> types.ModuleType:
@@ -40,26 +31,6 @@ def _to_endpoint_path(endpoint: str) -> str:
     if endpoint:
         return "/" + endpoint
     return "/"
-
-
-app = FastAPI()
-
-
-@app.middleware("http")
-async def add_process_time_header(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
-
-
-app.add_middleware(PrometheusMiddleware, app_name="meowlflow")
-app.add_middleware(ProxyHeadersMiddleware)
-app.add_route("/metrics", handle_metrics)
-app.middleware("http")(catch_exceptions_middleware)
 
 
 @click.option(
@@ -92,9 +63,16 @@ app.middleware("http")(catch_exceptions_middleware)
     type=int,
     show_default=True,
 )
+@sentry.options
 def sidecar(
-    endpoint: str, upstream: str, schema_path: Path, host: str, port: int
+    endpoint: str,
+    upstream: str,
+    schema_path: Path,
+    host: str,
+    port: int,
+    **kwargs: Dict[str, Any],
 ) -> None:
+
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     logger = logging.getLogger(__name__)
@@ -103,6 +81,9 @@ def sidecar(
     logger.info(f"Using model upstream at {upstream}")
     logger.info(f"Using host {host}")
     logger.info(f"Using port {port}")
+
+    sentry_kwargs = sentry.parse_kwargs(**kwargs)
+    app = build_app(sentry_kwargs)
 
     register_infer_endpoint(
         logger,
