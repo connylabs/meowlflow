@@ -33,4 +33,5 @@ def configure_catch_exceptions_middleware(
                 {"error": error.to_dict()},
                 status_code=error.status_code,
             )
+
     return catch_exceptions_middleware
