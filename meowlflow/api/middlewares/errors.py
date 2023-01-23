@@ -9,25 +9,48 @@ from meowlflow.exception import MeowlflowException
 logger = logging.getLogger(__name__)
 
 
-async def catch_exceptions_middleware(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
-    try:
-        return await call_next(request)
-    except MeowlflowException as error:
-        # you probably want some kind of logging here
-        logger.error(error)
-        logger.error(traceback.format_exc())
-        return JSONResponse(
-            {"error": error.to_dict()},
-            status_code=error.status_code,
-        )
+def configure_catch_exceptions_middleware(handlers=[]):
+    async def catch_exceptions_middleware(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        try:
+            return await call_next(request)
 
-    except Exception as err:  # pylint: disable=broad-except
-        logger.error(err)
-        logger.error(traceback.format_exc())
-        err = MeowlflowException("Internal server error", {})
-        return JSONResponse(
-            {"error": err.to_dict()},
-            status_code=err.status_code,
-        )
+        except MeowlflowException as error:
+            logger.error(error)
+            logger.error(traceback.format_exc())
+
+            for handler in handlers:
+                try:
+                    handler(error)
+                except Exception as handler_error:
+                    logger.error(handler_error)
+                    logger.error(traceback.format_exc())
+
+            return JSONResponse(
+                {"error": error.to_dict()},
+                status_code=error.status_code,
+            )
+
+        # now try to catch all unexpected Exceptions
+        except Exception as error:  # pylint: disable=broad-except
+            tb = traceback.format_exc()
+            logger.error(error)
+            logger.error(tb)
+
+            handler_tbs = []
+            for handler in handlers:
+                try:
+                    handler(error)
+                except Exception as handler_error:  # pylint: disable=broad-except
+                    handler_tbs.append(traceback.format_exc())
+                    logger.error(handler_error)
+                    logger.error(handler_tbs[-1])
+
+            err = MeowlflowException(tb, {"handler_tracebacks":handler_tbs})
+            return JSONResponse(
+                {"error": err.to_dict()},
+                status_code=err.status_code,
+            )
+
+    return catch_exceptions_middleware
