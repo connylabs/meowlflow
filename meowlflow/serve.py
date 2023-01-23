@@ -58,12 +58,7 @@ from meowlflow.integrations import sentry
 )
 @sentry.options
 def serve(
-    endpoint: str,
-    schema_path: Path,
-    model_path: str,
-    host: str,
-    port: int,
-    **kwargs
+    endpoint: str, schema_path: Path, model_path: str, host: str, port: int, **kwargs
 ) -> None:
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(level=logging.INFO, format=log_fmt)

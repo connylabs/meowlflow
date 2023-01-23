@@ -47,7 +47,7 @@ def configure_catch_exceptions_middleware(handlers=[]):
                     logger.error(handler_error)
                     logger.error(handler_tbs[-1])
 
-            err = MeowlflowException(tb, {"handler_tracebacks":handler_tbs})
+            err = MeowlflowException(tb, {"handler_tracebacks": handler_tbs})
             return JSONResponse(
                 {"error": err.to_dict()},
                 status_code=err.status_code,
