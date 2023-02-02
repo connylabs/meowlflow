@@ -79,7 +79,9 @@ For example, you could use the following custom schema for an API for a model th
 
 [replace]: # (examples/document_splitter_schema.py)
 ```python
-from typing import Any, List, Text
+from typing import Any, List
+
+from pydantic import Field
 
 from meowlflow.api.base import (
     BaseRequest,
@@ -97,7 +99,7 @@ version = "0.1.0"
 
 
 class Request(BaseRequest):
-    __root__: List[Text]
+    __root__: List[str] = Field(..., min_items=1)
 
     def transform(self) -> Any:
         return self.__root__
