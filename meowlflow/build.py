@@ -72,6 +72,8 @@ ENV DISABLE_NGINX=true
 EXPOSE 8000
 
 WORKDIR /opt/mlflow
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/meowlflow/prometheus
+RUN mkdir -p $PROMETHEUS_MULTIPROC_DIR
 ENTRYPOINT ["python", "-c", "from mlflow.models import container as C; C._serve()"]
 """  # noqa: E501
 
