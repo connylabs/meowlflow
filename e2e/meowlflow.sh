@@ -2,7 +2,7 @@
 # shellcheck disable=SC1091
 . lib.sh
 
-MLFLOW_GROUP=
+MLFLOW_PID=
 
 setup() {
     TMP=$(mktemp -d)
@@ -10,15 +10,16 @@ setup() {
     # separate from the rest of the script. This allows us to later kill
     # all of the gunicorn processes in the group without killing the whole script.
     setsid poetry run mlflow server --serve-artifacts --artifacts-destination="$TMP" --backend-store-uri=sqlite:////"$TMP"/mlflow.db &
-    MLFLOW_GROUP="$(ps -o '%r' $! | tail -n1 | awk '{print $1}')"
+    MLFLOW_PID=$!
     assert "retry 10 1 'mlflow is not yet running' curl --fail --silent http://localhost:5000" "the mlflow server should be accessible"
     assert_equals 'OK' "$(curl --fail --silent http://localhost:5000/health)" "mlflow should be healthy"
 }
 
 teardown() {
-    if [ -n "$MLFLOW_GROUP" ]; then
+    if [ -n "$MLFLOW_PID" ]; then
+        MLFLOW_GROUP="$(ps -o '%r' "$MLFLOW_PID" | tail -n1 | awk '{print $1}')"
         kill -INT -- -"$MLFLOW_GROUP"
-        MLFLOW_GROUP=
+        MLFLOW_PID=
     fi
 }
 
