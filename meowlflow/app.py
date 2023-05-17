@@ -1,5 +1,6 @@
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 import time
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Request, Response
 from starlette_exporter import (
@@ -29,8 +30,22 @@ def build_app(sentry_config: Dict[str, Any]) -> FastAPI:
     # error-handling integrations
     error_handlers: List[Callable[[Exception], Optional[str]]] = []
     if ("dsn" in sentry_config) and (sentry_config["dsn"] != ""):
+
+        def filter_transactions(event, hint):
+            url_string = event["request"]["url"]
+            parsed_url = urlparse(url_string)
+
+            if parsed_url.path == "/metrics":
+                return None
+
+            if parsed_url.path == "/version":
+                return None
+
+            return event
+
         sentry.sentry_sdk.init(
             dsn=sentry_config["dsn"],
+            before_send_transaction=filter_transactions,
             traces_sample_rate=sentry_config["traces_sample_rate"],
         )
         error_handlers.append(sentry.handle_error)
