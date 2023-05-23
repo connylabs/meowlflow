@@ -11,7 +11,7 @@ keywords = ["mlflow", "fastapi", "openapi"]
 [tool.poetry.dependencies]
 python = "^3.9"
 click = "^8.0.3"
-requests = "^2.27.1"
+requests = "^2.31.0"
 starlette-exporter = "0.12.0"
 uvicorn = "^0.18.3"
 sentry-sdk = {extras = ["fastapi"], version = "^1.14.0"}
